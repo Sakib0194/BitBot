@@ -1,0 +1,129 @@
+import sqlite3
+def balance_info(username, balance):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE balance_info SET Investment_Balance = '{balance}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def balance_amba(username, balance):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE balance_info SET Ambassador_Balance = '{balance}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def amba_info(Ambassador_Code, referred_number):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE amba_info SET Referred_Users = {referred_number} WHERE Ambassador_Code = '{Ambassador_Code}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def withdraws(serial, btc_hash):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE withdraws SET Transaction_Hash = '{btc_hash}' WHERE Serial = {serial}"
+        cur = conn.cursor()
+        cur.execute(sql)
+        sql = f"UPDATE withdraws SET Current_Status = 'CONFIRMED' WHERE Serial = {serial}"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def password(username, new_pass):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE user_info SET Password = '{new_pass}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def invement_sold(product, sold):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE investment_details SET Time_Sold = '{sold}' WHERE Investment_Name = '{product}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def invest_promo(username, balance, holding):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE investment_holding SET Promotional_Holding = '{balance}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+        sql = f"UPDATE investment_holding SET Holdings = '{holding}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def invest_stand(username, balance, holding):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE investment_holding SET Standard_Holding = '{balance}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+        sql = f"UPDATE investment_holding SET Holdings = '{holding}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def bonus_given(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE amba_info SET Bonus_Given = 'True' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def tree_investment(amba, balance):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE amba_info SET Tree_Investment = '{balance}' WHERE Ambassador_Code = '{amba}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def manager(username, manager):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE amba_info SET Manager = '{manager}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def qualified_milestone(username, amount):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE amba_info SET Qualified_Milestone = '{amount}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def qualified_residual(username, amount):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE amba_info SET Qualified_Residual = '{amount}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def enrolled(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE investment_holding SET Enrolled = 'True' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def tier(username, tier):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE milestone_bonus SET {tier} = 'True' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
