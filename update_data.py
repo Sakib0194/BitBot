@@ -15,6 +15,14 @@ def balance_amba(username, balance):
         cur = conn.cursor()
         cur.execute(sql)
 
+def balance_interest(username, balance):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE balance_info SET Interest_Balance = '{balance}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
 def amba_info(Ambassador_Code, referred_number):
     database = r"/mnt/sda1/database_test/dam_bot.db"
     conn = sqlite3.connect(database)
@@ -125,5 +133,13 @@ def tier(username, tier):
     conn = sqlite3.connect(database)
     with conn:
         sql = f"UPDATE milestone_bonus SET {tier} = 'True' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def payout_pending(product):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE investment_description SET Payout_Pending = 'False' WHERE Investment_Type = '{product}'"
         cur = conn.cursor()
         cur.execute(sql)

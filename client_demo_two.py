@@ -404,7 +404,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                                                                                                             [{'text':'↩️ Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
             
-            if callback_data == 'Investment History' and sender_id in logged_in:
+            elif callback_data == 'Investment History' and sender_id in logged_in:
                 if grab_data_two.trans_det(saved_username[sender_id]) == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
@@ -417,6 +417,27 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                         tim = h[1].replace('-', '\\-')
                         full_text += f'{serial}\\. Type: {h[0]} Time: {tim} Product: {h[2]} Value: {h[3]}\n'
                         serial += 1
+                    bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back','callback_data':'Investment Account'}]])
+                    bot.get_updates(offset = update_id+1)
+            
+            elif callback_data == 'Earnings' and sender_id in logged_in:
+                data = grab_data_two.payout_details(saved_username[sender_id])
+                if data == 'Nothing':
+                    bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'Back','callback_data':'Investment Account'}]])
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    full_text = ''
+                    serial = 1
+                    for i in range(len(data)):
+                        if len(full_text) > 4000:
+                            pass
+                        else:
+                            h = data[i]
+                            amount = h[1]
+                            amount = investment_num(amount)
+                            amount = amount.replace('.','\\.')
+                            full_text += f'{serial}\\. Product: {h[0]} \\| Amount: {amount} bits\n\n'
+                            serial += 1
                     bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
 
@@ -626,37 +647,37 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                         update_data.balance_info(amba_username, tree_bala+200000)
                         update_data.balance_amba(amba_username, tree_amba+200000)
                         total += 200000
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 1 Reward from {saved_username[sender_id]}')
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 1 BTC')
                         update_data.tier(amba_username, 'Tier_1')
                     if total >= 2000000 and tree_tier[1] == 'False' and qualified >= 2:
                         update_data.balance_info(amba_username, tree_bala+200000)
                         update_data.balance_amba(amba_username, tree_amba+200000)
                         total += 200000
                         update_data.tier(amba_username, 'Tier_2')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 2 Reward from {saved_username[sender_id]}')
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 2 BTC')
                     if total >= 5000000 and tree_tier[2] == 'False' and qualified >= 2:
                         update_data.balance_info(amba_username, tree_bala+200000)
                         update_data.balance_amba(amba_username, tree_amba+200000)
                         total += 200000
                         update_data.tier(amba_username, 'Tier_3')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 3 Reward from {saved_username[sender_id]}')
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 5 BTC')
                     if total >= 10000000 and tree_tier[3] == 'False' and qualified >= 2:
                         update_data.balance_info(amba_username, tree_bala+400000)
                         update_data.balance_amba(amba_username, tree_amba+400000)
                         total += 400000
                         update_data.tier(amba_username, 'Tier_4')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 400000, f'Milestone 4 Reward from {saved_username[sender_id]}')
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 400000, f'Milestone 10 BTC')
                     if total >= 50000000 and tree_tier[4] == 'False' and qualified >= 2:
                         update_data.balance_info(amba_username, tree_bala+2000000)
                         update_data.balance_amba(amba_username, tree_amba+2000000)
                         total += 2000000
                         update_data.tier(amba_username, 'Tier_5')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 2000000, f'Milestone 5 Reward from {saved_username[sender_id]}')
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 2000000, f'Milestone 50 BTC')
                     if total >= 100000000 and tree_tier[5] == 'False' and qualified >= 2:
                         update_data.balance_info(amba_username, tree_bala+5000000)
                         update_data.balance_amba(amba_username, tree_amba+5000000)
                         update_data.tier(amba_username, 'Tier_6')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 5000000, f'Milestone 6 Reward from {saved_username[sender_id]}')
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 5000000, f'Milestone 100 BTC')
 
                     date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
                     data_input.investment_transactions(saved_username[sender_id], date, 'Buy', pro_name[sender_id], d)
@@ -977,7 +998,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     first_name = current_updates['message']['from']['first_name']
                     e = grab_data_two.balance_balance(saved_username[sender_id])
                     update_data.balance_info(saved_username[sender_id], c+e)
-                    data_input.deposits(sender_id, first_name, saved_username[sender_id], date, text, d, 'Success')
+                    data_input.deposits(sender_id, first_name, saved_username[sender_id], date, text, float(d), 'Success')
                     bot.get_updates(offset = update_id+1)
                 else:
                     bot.send_message_four(sender_id, 'Transaction not sent to the deposit address\\. Deposit failed\\. If this was a mistake, contact us [here](https://t.me/BitBotTeam) as soon as possible', [[{'text':'Back', 'callback_data': 'Back'}]])
