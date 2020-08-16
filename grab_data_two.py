@@ -43,7 +43,7 @@ def balance_balance(username):
     conn = sqlite3.connect(database)
     with conn:
         cur = conn.cursor()
-        cur.execute(f"SELECT Investment_Balance, Interest_Balance FROM balance_info WHERE Username = '{username}'")
+        cur.execute(f"SELECT Investment_Balance FROM balance_info WHERE Username = '{username}'")
         rows = cur.fetchall()
         if rows == []:
             rows = 0.0
@@ -446,7 +446,6 @@ def holding_holding_two():
         rows = cur.fetchall()
         return rows
 
-
 def amba_bonus(username):
     database = r"/mnt/sda1/database_test/dam_bot.db"
     conn = sqlite3.connect(database)
@@ -489,6 +488,15 @@ def balance_amba(username):
     with conn:
         cur = conn.cursor()
         cur.execute(f"SELECT Ambassador_Balance FROM balance_info WHERE Username = '{username}'")
+        rows = cur.fetchall()
+        return rows[0][0]
+    
+def balance_inte(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Interest_Balance FROM balance_info WHERE Username = '{username}'")
         rows = cur.fetchall()
         return rows[0][0]
 
@@ -665,7 +673,10 @@ def descri_pending():
             rows = 'Nothing'
             return rows
         else:
-            return rows
+            unique_list = []
+            for i in rows:
+                unique_list.append(i[0])
+            return unique_list
 
 def inve_products(product):
     database = r"/mnt/sda1/database_test/dam_bot.db"
@@ -720,3 +731,29 @@ def withdraws():
         COLUMN = 6
         column3=[elt[COLUMN] for elt in rows]
         return column, column2, column3
+
+def pay_rate(category):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Payout_rate FROM investment_description WHERE Investment_Type = '{category}'")
+        rows = cur.fetchall()
+        if rows == []:
+            rows = 'Nothing'
+            return rows
+        else:
+            return rows[0][0]
+
+def payout_details(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Investment_Type, Value FROM payout_transactions WHERE Username = '{username}'")
+        rows = cur.fetchall()
+        if rows == []:
+            rows = 'Nothing'
+            return rows
+        else:
+            return rows
