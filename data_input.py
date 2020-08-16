@@ -148,3 +148,13 @@ def feedback(Username, Time, Description):
         cur = conn.cursor()
         project = (Username, Time, Description)
         cur.execute(sql, project)
+
+def payout_transaction(Username, Investment_Type, Value):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f'''INSERT INTO payout_transactions(Username, Investment_Type, Value)
+            VALUES(?,?,?)'''
+        cur = conn.cursor()
+        project = (Username, Investment_Type, Value)
+        cur.execute(sql, project)
