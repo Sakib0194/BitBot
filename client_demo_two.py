@@ -117,7 +117,7 @@ temp_acc = {} #to update refer number
 submitting = [] #While submitting pass
 temp_pass = {} #While submitting pass
 
-logged_in = [468930122, 1211908888, 1102049151] #after logged in
+logged_in = [468930122, 1211908888] #after logged in
 report_bug = []
 
 loggin_in = [] #login
@@ -126,7 +126,7 @@ password_in = [] #login
 registering = [] #register
 user_regis = [] #register
 
-saved_username = {468930122:'Sakib0194', 1211908888:'Vito', 1102049151:'Dummy'} #For saving username
+saved_username = {468930122:'Sakib0194', 1211908888:'Vito'} #For saving username
 saved_amba = {} #for saving amba code
 
 withdraw = []# when withdrawing
@@ -251,7 +251,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             elif callback_data == 'Deposit History' and sender_id in logged_in:
                 data = grab_data_two.depo_user(saved_username[sender_id])
                 if data == 'Nothing':
-                    bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'Back'}]])
+                    bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
                     serial = 1
@@ -261,7 +261,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                             pass
                         else:
                             amount = investment_num(float(i[2])).replace('.', '\\.')
-                            full_text += f'{serial}\\. Time: {i[0]} \\| Transaction Hash: {i[1]} \\| Amount: {amount} bits\n\n'
+                            date = i[0].replace('-', '\\-')
+                            full_text += f'{serial}\\. Time: {date} \\| Transaction Hash: {i[1]} \\| Amount: {amount} bits\n\n'
                             serial += 1
                     bot.edit_message_two(group_id, message_id, full_text, [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
@@ -269,7 +270,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             elif callback_data == 'Withdraw History' and sender_id in logged_in:
                 data = grab_data_two.with_user(saved_username[sender_id])
                 if data == 'Nothing':
-                    bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'Back'}]])
+                    bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
                     serial = 1
@@ -278,8 +279,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                         if len(full_text) > 4000:
                             pass
                         else:
+                            date = i[0].replace('-', '\\-')
                             amount = investment_num(float(i[3])).replace('.', '\\.')
-                            full_text += f'{serial}\\. Time: {i[0]} \\| Withdrawal Address: {i[1]} \\| Transaction Hash{i[2]} \\| Amount {amount} bits \\| Status {i[4]}\n\n'
+                            full_text += f'{serial}\\. Time: {date} \\| Withdrawal Address: {i[1]} \\| Transaction Hash{i[2]} \\| Amount {amount} bits \\| Status {i[4]}\n\n'
                             serial += 1
                     bot.edit_message_two(group_id, message_id, full_text, [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
@@ -306,14 +308,14 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.edit_message_two(group_id, message_id, f'👤 *My Ambassador \\- {saved_username[sender_id]}\n\nDirect Referrals: {referred}*', [[{'text':f'My Ambassador Volume: {investment_num(tree)} bits', 'callback_data':'None'}],
                                                                                                                                                 [{'text':f'My Ambassador Earnings: {investment_num(amba_balance)} bits', 'callback_data':'Ambassador Earning'}],
                                                                                                                                                 [{'text':'Ambassador Compensation Plan', 'callback_data':'Ambassador Compensation'}],
-                                                                                                                                                [{'text':'↩️ Back', 'callback_data':'Main Balance'}]])
+                                                                                                                                                [{'text':'↩️ Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Ambassador Earning' and sender_id in logged_in:
                 bot.edit_message_two(group_id, message_id, '*My Ambassador Earnings*', [[{'text':'Referral Bonus', 'callback_data':'Referral Bonus'}],
                                                                                         [{'text':'Lifetime Milestone Bonus', 'callback_data':'Milestone Bonus'}],
                                                                                         [{'text':'Ambassador Residual Income', 'callback_data':'Residual Bonus'}],
-                                                                                        [{'text':'↩️ Back', 'callback_data':'Back'}]])
+                                                                                        [{'text':'↩️ Back', 'callback_data':'Ambassador Account'}]])
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Milestone Bonus' and sender_id in logged_in:
@@ -365,7 +367,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.edit_message_two(group_id, message_id, f'👤 *Ambassador Compensation Plan \\- {saved_username[sender_id]}*', [[{'text': 'Referral Bonus', 'callback_data':'Referral Chart'}],
                                                                                                                                 [{'text':'Ambassador Milestone Bonus', 'callback_data':'Milestone Chart'}],
                                                                                                                                 [{'text':'Ambassador Residual  Income', 'callback_data':'Residual Chart'}],
-                                                                                                                                [{'text':'↩️ Back', 'callback_data':'Ambassador Earning'}]])
+                                                                                                                                [{'text':'↩️ Back', 'callback_data':'Ambassador Account'}]])
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Referral Chart' and sender_id in logged_in:
@@ -734,7 +736,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             elif callback_data == 'Sell Investment' and sender_id in logged_in:
                 balance = float(grab_data_two.balance_balance(saved_username[sender_id]))
-                update_data.balance_info(saved_username[sender_id], float(balance)+pro_price[sender_id])
+                update_data.balance_info(saved_username[sender_id], float(balance)+pro_price[sender_id]-1000)
                 holding = grab_data_two.holding_holding(saved_username[sender_id]).split(' ')
                 a = 0
                 while holding[a] != pro_name[sender_id]:
@@ -754,11 +756,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 if pro_name[sender_id].startswith('P'):
                     promo = int(grab_data_two.hold_promo(saved_username[sender_id]))
                     d = pro_price[sender_id]
-                    update_data.invest_promo(saved_username[sender_id], promo-int(d)-1000, full_text)
+                    update_data.invest_promo(saved_username[sender_id], promo-int(d), full_text)
                 else:
                     stand = int(grab_data_two.hold_stand(saved_username[sender_id]))
                     d = pro_price[sender_id]
-                    bal = stand-int(d)-1000
+                    bal = stand-int(d)
                     update_data.invest_stand(saved_username[sender_id], bal, full_text)
                 date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
                 data_input.investment_transactions(saved_username[sender_id], date, 'Sell', pro_name[sender_id], pro_price[sender_id])
@@ -838,12 +840,30 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
         else:
             text = current_updates['message']['text']
+            print(text)
+
+            if text == '/help':
+                bot.send_message(sender_id, grab_data_two.help_text())
+                bot.send_message(sender_id, 'Type /start to get back to the main menu')
+                bot.get_updates(offset = update_id+1)
 
             if text == '/start' and sender_id not in logged_in:
                 if sender_id in loggin_in:
                     loggin_in.remove(sender_id)
                 if sender_id in registering:
                     registering.remove(sender_id)
+                if sender_id in submitting:
+                    submitting.remove(sender_id)
+                if sender_id in password_in:
+                    password_in.remove(sender_id)
+                if sender_id in user_regis:
+                    user_regis.remove(sender_id)
+                bot.send_message_four(sender_id, '👤 *BitBot Client Authorization*\n\nSend /help to get more details', [[{'text':'🔑 Log In', 'callback_data': 'Login'}, {'text':'®️ Register', 'callback_data':'Register'}]])
+                bot.get_updates(offset = update_id+1)
+
+            elif text == '/start' and sender_id in logged_in:
+                if sender_id in update_success:
+                    update_success.remove(sender_id)
                 if sender_id in temp_pass:
                     del temp_pass[sender_id]
                 if sender_id in temp_acc:
@@ -854,12 +874,24 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     password_in.remove(sender_id)
                 if sender_id in user_regis:
                     user_regis.remove(sender_id)
-                bot.send_message_four(sender_id, '👤 *BitBot Client Authorization*', [[{'text':'🔑 Log In', 'callback_data': 'Login'}, {'text':'®️ Register', 'callback_data':'Register'}]])
-                bot.get_updates(offset = update_id+1)
-            
-            elif text == '/start' and sender_id in logged_in:
-                if sender_id in update_success:
-                    update_success.remove(sender_id)
+                if sender_id in registering:
+                    registering.remove(sender_id)
+                if sender_id in loggin_in:
+                    loggin_in.remove(sender_id)
+                if sender_id in report_bug:
+                    report_bug.remove(sender_id)
+                if sender_id in withdraw:
+                    withdraw.remove(sender_id)
+                if sender_id in temp_with:
+                    del temp_with[sender_id]
+                if sender_id in pro_name:
+                    del pro_name[sender_id]
+                if sender_id in pro_price:
+                    del pro_price[sender_id]
+                if sender_id in sell_invest:
+                    sell_invest.remove(sender_id)
+                if sender_id in buy_invest:
+                    buy_invest.remove(sender_id)
                 promo = grab_data_two.hold_promo(saved_username[sender_id])
                 stand = grab_data_two.hold_stand(saved_username[sender_id])
                 tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id]))
