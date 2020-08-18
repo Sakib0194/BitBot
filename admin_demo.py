@@ -1,5 +1,5 @@
 import requests, json, random, string, time, datetime
-import grab_data, update_data, data_input, grab_data_two, delete_row, payout_demo
+import grab_data, update_data, data_input, grab_data_two, delete_row, payout_demo, tree_tracking
 class BoilerPlate:
     def __init__(self, token):
         self.token = token
@@ -134,7 +134,14 @@ delete_user = {}
 payout_pen = {} #When sending payout to store data
 product_name = {} #When sending payout to store pruduct name
 
+residual = {}#when sending residual
 
+create_inve = []
+inve_category = {}
+inve_type = {}
+inve_name = {}
+inve_payout = {}
+inve_paydate = {}
 
 bot = BoilerPlate(token)
 
@@ -173,15 +180,22 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     del payout_pen[sender_id]
                 if sender_id in product_name:
                     del product_name[sender_id]
-                dep = grab_data_two.dep_total()
-                withdraw = grab_data_two.with_total()
-                bot.edit_message_two(group_id, message_id, '*General Ledger*', [[{'text':'Net Balance: TO BE EDITED bits', 'callback_data':'None'}], 
-                                                                                [{'text':'Net Value: TO BE EDITED bits', 'callback_data':'Total Payouts'}],
-                                                                                [{'text':'Total Investment: TO BE EDITED bits', 'callback_data':'Total Payouts'}],
-                                                                                [{'text':f'Total Deposits: {dep} bits', 'callback_data':'Total Deposits'}],
-                                                                                [{'text':'Total Payouts: TO BE EDITED bits', 'callback_data':'Total Payouts'}],
-                                                                                [{'text':f'Total Withdrawals: {withdraw} bits', 'callback_data':'Total Withdrawals'}], 
-                                                                                [{'text':'Pending Withdrawals: TO BE EDITED bits', 'callback_data':'Manage Withdrawals'}],
+                if residual != {}:
+                    residual.clear()
+                dep = float(grab_data_two.dep_total())
+                withdraw = float(grab_data_two.with_total())
+                amba = float(grab_data_two.all_ambabala())
+                inte = float(grab_data_two.all_intebala())
+                inve = float(grab_data_two.all_inve())
+                payout = float(grab_data_two.all_payout())
+                pen_with = float(grab_data_two.pen_withdraw())
+                bot.edit_message_two(group_id, message_id, '*General Ledger*', [[{'text':f'Net Balance: {investment_num(dep - withdraw)} bits', 'callback_data':'None'}], 
+                                                                                [{'text':f'Net Value: {investment_num(dep-withdraw-amba-inte)}  bits', 'callback_data':'Total Payouts'}],
+                                                                                [{'text':f'Total Investment: {investment_num(inve)} bits', 'callback_data':'None'}],
+                                                                                [{'text':f'Total Deposits: {investment_num(dep)} bits', 'callback_data':'Total Deposits'}],
+                                                                                [{'text':f'Total Payouts: {investment_num(payout)} bits', 'callback_data':'Total Payouts'}],
+                                                                                [{'text':f'Total Withdrawals: {investment_num(withdraw)} bits', 'callback_data':'Total Withdrawals'}], 
+                                                                                [{'text':f'Pending Withdrawals: {investment_num(pen_with)} bits', 'callback_data':'Manage Withdrawals'}],
                                                                                 [{'text':'Pending Payouts', 'callback_data':'Manage Payouts'}],
                                                                                 [{'text':'Pending Residual', 'callback_data':'Manage Residual'}],
                                                                                 [{'text':'Back', 'callback_data': 'Back'}]])
@@ -211,6 +225,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             elif callback_data in grab_data_two.descri_pending() and sender_id in logged_in:
                 data = payout_demo.details(callback_data)
+                print(data)
                 if data == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'No one is holding any product of this category', [[{'text':'Back', 'callback_data': 'General Ledger'}]])
                     bot.get_updates(offset = update_id+1)
@@ -250,16 +265,61 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 del payout_pen[sender_id]
                 update_data.payout_pending(product)
                 bot.edit_message_two(group_id, message_id, 'Payout successfully sent', [[{'text':'Back', 'callback_data': 'General Ledger'}]])
+                bot.get_updates(offset = update_id+1)
+                
+            elif callback_data == 'Manage Residual' and sender_id in logged_in:
+                all_users = grab_data_two.user_all()
+                sorted_data = {}
+                for i in all_users:
+                    tree_tracking.qualified_mile(i[0])
+                    tree_tracking.qualified_resi(i[0])
+                    tree_tracking.resi_per(i[0])
+                    resi = grab_data_two.quali_resi(i[0])
+                    for i in resi:
+                        if i[0] == 'Vito':
+                            pass
+                        elif i[1] == 0 or i[1] == 1:
+                            pass
+                        elif i[2] == 0:
+                            pass
+                        else:
+                            sorted_data[i[0]] = i[1]
+                full_text = ''
+                for i in sorted_data:
+                    tree = grab_data_two.amba_tree(i)
+                    promo = int(grab_data_two.hold_promo(i))
+                    stand = int(grab_data_two.hold_stand(i))
+                    num = investment_num(float(tree+stand+promo)).replace('.','\\.')
+                    calculated = investment_num(((tree+promo+stand)*int(sorted_data[i])/100)).replace('.','\\.')
+                    full_text += f'{i} is to get {sorted_data[i]}\\% and {calculated} bits Residual on {num} bits\n\n'
+                    residual[i] = (tree+promo+stand)*int(sorted_data[i])/100
+                bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Confirm', 'callback_data': 'Confirm Residual'}],
+                                                                            [{'text':'Cancel', 'callback_data': 'General Ledger'}]])
+                bot.get_updates(offset = update_id+1)
 
-            elif callback_data == 'Total Deposits':
+            elif callback_data == 'Confirm Residual' and sender_id in logged_in:
+                for i in residual:
+                    balance = grab_data_two.balance_balance(i)
+                    amba = grab_data_two.balance_amba(i)
+                    update_data.balance_info(i, residual[i]+balance)
+                    update_data.balance_amba(i, residual[i]+amba)
+                    data_input.ambassador_transactions(i, 'Residual', residual[i], 'Ambassador Residual Bonus')
+                residual.clear()
+                bot.edit_message_two(group_id, message_id, 'Residual Successfully Sent', [[{'text':'Done', 'callback_data': 'General Ledger'}]])
+                bot.get_updates(offset = update_id+1)
+
+            elif callback_data == 'Total Deposits' and sender_id in logged_in:
                 full_text = ''
                 grabbing = grab_data_two.deposits()
                 i = len(grabbing[0])
-                for d in range(i):
-                    tim = time_splitter(grabbing[2][d]).replace("-", "\\-")
-                    bala = str(grabbing[0][d]).replace(".", "\\.")
-                    name = str(grabbing[1][d]).replace(".", "\\.")
-                    full_text += f'{name} deposited {bala} bits on {tim}\n\n'
+                if len(full_text) > 3800:
+                    pass
+                else:
+                    for d in range(i):
+                        tim = time_splitter(grabbing[2][d]).replace("-", "\\-")
+                        bala = str(grabbing[0][d]).replace(".", "\\.")
+                        name = str(grabbing[1][d]).replace(".", "\\.")
+                        full_text += f'{name} deposited {bala} bits on {tim}\n\n'
                 dep = 0
                 for g in grabbing[0]:
                     dep += float(g)
@@ -268,15 +328,34 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back', 'callback_data':'General Ledger'}]])
                 bot.get_updates(offset = update_id+1)
 
-            elif callback_data == 'Total Withdrawals':
+            elif callback_data == 'Total Payouts' and sender_id in logged_in:
+                all_trans = grab_data_two.payout_alltrans()
+                if grab_data_two == 'Nothing':
+                    bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'Back', 'callback_data': 'General Ledger'}]])
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    full_text = ''
+                    if len(full_text) > 4000:
+                        pass
+                    else:
+                        for i in all_trans:
+                            amount = str(i[2]).replace('.', '\\.')
+                            full_text += f'Username: {i[0]} \\| Investment: {i[1]} \\| Amount: {amount}\n'
+                    bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back', 'callback_data': 'General Ledger'}]])
+                    bot.get_updates(offset = update_id+1)
+
+            elif callback_data == 'Total Withdrawals' and sender_id in logged_in:
                 full_text = ''
                 grabbing = grab_data_two.withdraws()
                 i = len(grabbing[0])
-                for d in range(i):
-                    tim = time_splitter(grabbing[1][d]).replace("-", "\\-")
-                    bala = str(grabbing[2][d]).replace(".", "\\.")
-                    name = str(grabbing[0][d]).replace(".", "\\.")
-                    full_text += f'{name} requested withdrawal of {bala} bits on {tim}\n\n'
+                if len(full_text) > 3800:
+                    pass
+                else:
+                    for d in range(i):
+                        tim = time_splitter(grabbing[1][d]).replace("-", "\\-")
+                        bala = str(grabbing[2][d]).replace(".", "\\.")
+                        name = str(grabbing[0][d]).replace(".", "\\.")
+                        full_text += f'{name} requested withdrawal of {bala} bits on {tim}\n\n'
                 dep = 0
                 for g in grabbing[2]:
                     dep += float(g)
@@ -292,10 +371,10 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     pending_serials = ''
                     for i in range(pending_amount):
                         pending_serials += f'{str(serials[i][0])} '
-                    bot.edit_message_two(group_id, message_id, f'Total Pending Withdrawals: {pending_amount}\nPending Withdrawal Serials: {pending_serials}\n\nEnter a Serial Number \\+ withdraw to get full details\n\nexample\n57 withdraw', [[{'text':'Back', 'callback_data':'Tools'}]])
+                    bot.edit_message_two(group_id, message_id, f'Total Pending Withdrawals: {pending_amount}\nPending Withdrawal Serials: {pending_serials}\n\nEnter a Serial Number \\+ withdraw to get full details\n\nEnter Serial Number + TX Hash to Complete a withdrawal\n\nexample\n57 withdraw\n91 64\\-length\\-TX\\-hash', [[{'text':'Back', 'callback_data':'General Ledger'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
-                    bot.edit_message_two(group_id, message_id, 'No Withdrawal is Pending', [[{'text':'Back', 'callback_data':'Tools'}]])
+                    bot.edit_message_two(group_id, message_id, 'No Withdrawal is Pending', [[{'text':'Back', 'callback_data':'General Ledger'}]])
                     bot.get_updates(offset = update_id+1)
             if callback_data == 'Back':
                 if sender_id in credit_acc:
@@ -315,8 +394,31 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                                                                         [{'text':'Log Out', 'callback_data':'Log Out'}]])
                 bot.get_updates(offset = update_id+1)
             
+            if callback_data == 'Investments' and sender_id in logged_in:
+                bot.edit_message_two(group_id, message_id, 'Investments', [[{'text':'Active Investments', 'callback_data':'Active Investments'}],
+                                                                        [{'text':'Create New Investment', 'callback_data':'New Investment'}],
+                                                                        [{'text':'Back', 'callback_data':'Back'}]])
+                bot.get_updates(offset = update_id+1)
+
+            elif callback_data == 'Active Investments' and sender_id in logged_in:
+                all_pro = grab_data_two.all_products()
+                full_text = ''
+                for i in all_pro:
+                    full_text += f'Product:{i[0]} \\| Time Sold: {i[1]}\n\n'
+                bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back', 'callback_data':'Investments'}]])
+                bot.get_updates(offset = update_id+1)
+            
+            elif callback_data == 'New Investment' and sender_id in logged_in:
+                categories = grab_data_two.inve_cate_two()
+                full_text = 'Type a Category name to add a new Investment\\. If the category is not listed, type a new Category to begin\nAvailable Categories\n'
+                for i in categories:
+                    full_text += f'{i}\n'
+                bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back', 'callback_data':'Investments'}]])
+                create_inve.append(sender_id)
+                bot.get_updates(offset = update_id+1)
+
             if callback_data == 'Confirm Delete' and sender_id in logged_in:
-                delete_row.delete_user(delete_user[sender_id])
+                delete_row.user_info(delete_user[sender_id])
                 bot.edit_message_two(group_id, message_id, f'{delete_user[sender_id]} has been deleted', [[{'text':'Back', 'callback_data':'Tools'}]])
                 del delete_user[sender_id]
                 bot.get_updates(offset = update_id+1)
@@ -325,8 +427,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 full_text = ''
                 grabbing = grab_data_two.user_all()
                 i = len(grabbing)
-                for d in range(i):
-                    full_text += f'Username: {grabbing[d][0]}\n'
+                if len(full_text) > 4000:
+                    pass
+                else:
+                    for d in range(i):
+                        full_text += f'Username: {grabbing[d][0]}\n'
                 full_text += 'End of List\n\nType a Username \\+ client to get full details of a user\n\nexample\nSakib0194 client'
                 bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
@@ -388,7 +493,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Delete Account' and sender_id in logged_in:
-                bot.edit_message_two(group_id, message_id, 'Enter a Client Username \\+ delete to delete an account\\.\nNote: deleting will cause the username cease to exist however, his data will still remain in the database\n\nExample\nSakib0194 delete', [[{'text':'Back', 'callback_data':'Back'}]])
+                bot.edit_message_two(group_id, message_id, 'Enter a Client Username \\+ delete to delete an account\\.\n\nExample\nSakib0194 delete', [[{'text':'Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Create User' and sender_id in logged_in:
@@ -454,6 +559,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                                                                         [{'text':'Investments', 'callback_data':'Investments'}],
                                                                         [{'text':'Tools', 'callback_data':'Tools'}],
                                                                         [{'text':'Log Out', 'callback_data':'Log Out'}]])
+                bot.get_updates(offset = update_id+1)
+
             if text == '/start' and sender_id not in logged_in:
                 bot.send_message(sender_id, 'Please provide your *ID*')
                 asking_id.append(sender_id)
@@ -495,14 +602,16 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.get_updates(offset = update_id+1)
                 elif a[2] != grab_data_two.user_username(a[2])[0][0]:
                     ref = grab_data_two.amba_users(a[4])
-                    print(ref)
-                    print(a[4])
                     refer_number = ref + 1
-                    print(refer_number)
                     data_input.user_info(a[0], a[1], a[2], gene_pass[sender_id], gene_amba[sender_id], a[3],time_splitter(str(datetime.datetime.fromtimestamp(time.time()))), a[4])
                     data_input.balance_info(a[0], a[1], a[2], 0,0,0)
                     data_input.amba_info(a[0], a[1], a[2], gene_amba[sender_id], a[3], 0)
                     update_data.amba_info(a[3], refer_number)
+                    manager = tree_tracking.up(a[2])
+                    update_data.manager(a[2], manager)
+                    if grab_data_two.holding_user(a[2]) == 'No':
+                        data_input.investment_holding(a[2], 0,0, 'Nothing')
+                    data_input.milestone_bonus(a[2])
                     bot.send_message_four(sender_id, f'User Successfully Created\\.\nUsername: {a[2]}\nPassword: {gene_pass[sender_id]}\nAmbassador Code: {gene_amba[sender_id]}', [[{'text':'Back', 'callback_data':'Tools'}]])
                     bot.get_updates(offset = update_id+1)
 
@@ -519,8 +628,10 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
                     data_input.managers(a[0], a[1], date, mana_pass[sender_id], mana_id[sender_id], a[2],a[3], a[4])
                     bot.send_message_four(sender_id, f'Manager Successfully Created\nManager ID: {mana_id[sender_id]}\nManager Password: {mana_pass[sender_id]}', [[{'text':'Back', 'callback_data':'Cancel'}]])
+                    bot.get_updates(offset = update_id+1)
                 else:
                     bot.send_message_four(sender_id, 'Wrong Format\\. Type YES or NO in uppercase letters\\. Try again', [[{'text':'Back', 'callback_data':'Tools'}]])
+                    bot.get_updates(offset = update_id+1)
 
             elif sender_id in create_manager and len(text.split(' ')) > 5 or sender_id in create_manager and len(text.split(' ')) < 5:
                 bot.send_message_four(sender_id, 'Details Missing or too many keywords\\. Try again', [[{'text':'Back', 'callback_data':'Tools'}]])
@@ -588,7 +699,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 serial = grab_data_two.withdraw_serial()
                 data_input.withdraws('Admin', 'None', debit_acc_two[sender_id], date, 'Debited By Admin','Debited By Admin', text, 'CONFIRMED', serial+1)
                 bot.send_message_four(sender_id, 'Balance Successfully Debited', [[{'text':'Back', 'callback_data':'Back'}]])
-            
+                bot.get_updates(offset = update_id+1)
+
             if sender_id in credit_acc and sender_id in logged_in and len(text) > 2:
                 bot.send_message(sender_id, 'Checking Username validity')
                 validity = grab_data_two.user_username(text)
@@ -610,6 +722,21 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 update_data.balance_info(credit_acc_two[sender_id], to_add)
                 data_input.deposits('Admin', 'None', credit_acc_two[sender_id], date, 'Credited By Admin', text, 'Success')
                 bot.send_message_four(sender_id, 'Balance Successfully Credited', [[{'text':'Back', 'callback_data':'Back'}]])
+                bot.get_updates(offset = update_id+1)
+
+            if sender_id in create_inve and sender_id in logged_in:
+                types = grab_data_two.inve_cate(text)
+                if types == []:
+                    bot.send_message_four(sender_id, 'Category Name do not exist. Creating new category\n\nInput a new Invesment Type name', [[{'text':'Back', 'callback_data':'Investments'}]])
+                    inve_category[sender_id] = text
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    full_text = 'Category Exist\\. Enter an existing or a new invesment type\\. Current Investment Types\n\n'
+                    for i in types:
+                        full_text += f'{i}\n'
+                    inve_category[sender_id] = text
+                    bot.send_message_four(sender_id, full_text, [[{'text':'Back', 'callback_data':'Investments'}]])
+                    bot.get_updates(offset = update_id+1)
 
             if 'withdraw' in text and len(text.split(' ')) == 2 and sender_id in logged_in:
                 b = text.split(' ')
@@ -667,7 +794,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
     except Exception as e:
-        print(current_updates)
+        #print(current_updates)
         print(e)
         bot.get_updates(offset = update_id+1)
 

@@ -158,3 +158,15 @@ def payout_transaction(Username, Investment_Type, Value):
         cur = conn.cursor()
         project = (Username, Investment_Type, Value)
         cur.execute(sql, project)
+
+def plain_text(Name, Details):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f'''INSERT INTO plain_text(Name, Details)
+            VALUES(?,?)'''
+        cur = conn.cursor()
+        project = (Name, Details)
+        cur.execute(sql, project)
+
+#plain_text('help', 'This is the official Telegram Bot of BitBot, a Digital Asset Management Service\\. The following message will include the details of what this bot can do, what you can expect and the navigation\\.\n\nStart the bot by typing /start, you will be presented with a Login/Register function\\. To get your login details and to register, you must first get an access code/ambassador code from someone else\\. If you do not have an ambassador code, contact us here \\@BitBotTeam to get one\\.\n\nOnce you have the ambassador code, press Register \\=\\> Accept our Terms of Service \\=\\> Type your Ambassador Code\\. You now have to choose a unique username, max 10 length, only Characters and Numbers are allowed and case sensitive\\. You will be given a password and an ambassador code once you are done choosing your username and you will be redirected to the Main Menu\n\nYou will see 5 buttons in Main Menu with each have their own usage and functions\\. Balance is counted as bits\\. 1 million bits \\= 1 BTC or 1,000,000 bits \\= 1 BTC\\.\n\n*My BitBot Balance*\nMy BitBot Balance \\- Your Total Balance\nAvailable Balance \\- Balance Available for Spending\nMake a Deposit \\- To Deposit Funds\nWithdrawal \\- To Request Withdrawal\nTransaction History \\- Your Deposit and Withdrawal History\n\n*My Portfolio*\nMy Portfolio \\- Your Total Investment Value\nMy Investments \\- Your Current Investment Product Holdinds\nMy Earnings \\- Your Earnings from Investment Products\nBuy Sell \\- To Purchase or Sell Investment\\. Selling Investments has a cost of 1000 bits\nInvestments History \\- Your Investment Buy or Sell History\n\n*My Ambassador Profile*\nMy Ambassador Volume \\- Total Investment Purchase Volume of your referrals\nMy Ambassador Earnings \\- Details of Referring Users, Earnings for Reaching Milestone or Residual Income\nAmbassador Compensation Plan \\- Detailed Plans and Rewards for Referring Users\n\n*More*\nToS \\- Terms of Service\nFAQ \\- Answers to Common Questions\nAbout Us \\- Details about our company\nReport Bug \\- To Report any Bug in the bot or Feedback\nHelp \\- How to Contact us')
