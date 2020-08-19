@@ -215,6 +215,7 @@ def inve_cate(category):
         return unique_list
 
 
+
 def inve_name(name):
     database = r"/mnt/sda1/database_test/dam_bot.db"
     conn = sqlite3.connect(database)
@@ -880,3 +881,54 @@ def payout_alltrans():
             return rows
         else:
             return rows
+
+def pro_all():
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Investment_Name from investment_details")
+        rows = cur.fetchall()
+        full_list = []
+        for i in rows:
+            full_list.append(i[0])
+        return full_list
+
+def type_all():
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Investment_Type from investment_details")
+        rows = cur.fetchall()
+        full_list = []
+        for i in rows:
+            if i[0] in full_list:
+                pass
+            else:
+                full_list.append(i[0])
+        return full_list
+
+def payout_time():
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Investment_Type from investment_description WHERE Payout_Time = '0'")
+        rows = cur.fetchall()
+        full_list = []
+        for i in rows:
+            if i[0] in full_list:
+                pass
+            else:
+                full_list.append(i[0])
+        return full_list
+
+def next_payout(product):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Payout_Time from investment_description WHERE Investment_Type = '{product}'")
+        rows = cur.fetchall()
+        return rows[0][0]

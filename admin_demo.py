@@ -16,7 +16,7 @@ class BoilerPlate:
         fieldss = {'chat_id': chat_id, 'text': text, 'parse_mode': 'MarkdownV2', 'disable_web_page_preview':disable_web_page_preview}
         function = 'sendMessage'
         send = requests.post(self.api_url + function, fieldss)
-        print(send.json())
+        #print(send.json())
         return send
     def send_message_two(self, chat_id, text, reply_markup, one_time_keyboard=False, resize_keyboard=True, disable_web_page_preview=True):         #FOR SENDING MESSAGE WITH KEYBOARD INCLUDED
         reply_markup = json.dumps({'keyboard': reply_markup, 'one_time_keyboard': one_time_keyboard, 'resize_keyboard': resize_keyboard, 'disable_web_page_preview':disable_web_page_preview})
@@ -37,7 +37,7 @@ class BoilerPlate:
         fieldss = {'chat_id': chat_id, 'text': text, 'parse_mode': 'MarkdownV2', 'reply_markup': reply_markup, 'disable_web_page_preview':disable_web_page_preview}
         function = 'sendMessage'
         send = requests.post(self.api_url + function, fieldss).json()
-        print(send)
+        #print(send)
         return send 
     
     def InLineAnswer(self, inline_query_id, results):                   #FOR MANAGING INLINE REPLIES
@@ -137,11 +137,16 @@ product_name = {} #When sending payout to store pruduct name
 residual = {}#when sending residual
 
 create_inve = []
+inve_create = []
 inve_category = {}
 inve_type = {}
 inve_name = {}
 inve_payout = {}
 inve_paydate = {}
+inve_cost = {}
+
+add_payout = []
+payout_pro = {}
 
 bot = BoilerPlate(token)
 
@@ -153,22 +158,25 @@ def starter():
             #print(current_updates)
             update_id = current_updates['update_id']
             #bot.get_updates(offset = update_id+1)
-            if 'callback_query' in current_updates:
-                #print('inline keyboard detected')
-                sender_id = current_updates['callback_query']['from']['id']
-                group_id = current_updates['callback_query']['message']['chat']['id']
-                message_id = current_updates['callback_query']['message']['message_id']
-                callback_data = current_updates['callback_query']['data']
-                bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0 , callback_data=callback_data, callback=True)
-            else:
-                group_id = current_updates['message']['chat']['id']
-                sender_id = current_updates['message']['from']['id']
-                message_id = current_updates['message']['message_id']
-                dict_checker = []
-                for keys in current_updates.get('message'):
-                    dict_checker.append(keys)
-                if sender_id == group_id:
-                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker)
+            try:
+                if 'callback_query' in current_updates:
+                    #print('inline keyboard detected')
+                    sender_id = current_updates['callback_query']['from']['id']
+                    group_id = current_updates['callback_query']['message']['chat']['id']
+                    message_id = current_updates['callback_query']['message']['message_id']
+                    callback_data = current_updates['callback_query']['data']
+                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0 , callback_data=callback_data, callback=True)
+                else:
+                    group_id = current_updates['message']['chat']['id']
+                    sender_id = current_updates['message']['from']['id']
+                    message_id = current_updates['message']['message_id']
+                    dict_checker = []
+                    for keys in current_updates.get('message'):
+                        dict_checker.append(keys)
+                    if sender_id == group_id:
+                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker)
+            except:
+                bot.get_updates(offset = update_id+1)
 
 
 def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, callback_data=0, callback=False):
@@ -393,10 +401,29 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                                                                         [{'text':'Tools', 'callback_data':'Tools'}],
                                                                         [{'text':'Log Out', 'callback_data':'Log Out'}]])
                 bot.get_updates(offset = update_id+1)
-            
+
             if callback_data == 'Investments' and sender_id in logged_in:
+                if sender_id in inve_category:
+                    del inve_category[sender_id]
+                if sender_id in inve_type:
+                    del inve_type[sender_id]
+                if sender_id in inve_name:
+                    del inve_name[sender_id]
+                if sender_id in inve_payout:
+                    del inve_payout[sender_id]
+                if sender_id in inve_cost:
+                    del inve_cost[sender_id]
+                if sender_id in create_inve:
+                    create_inve.remove(sender_id)
+                if sender_id in inve_create:
+                    inve_create.remove(sender_id)
+                if sender_id in payout_pro:
+                    del payout_pro[sender_id]
+                if sender_id in add_payout:
+                    add_payout.remove(sender_id)
                 bot.edit_message_two(group_id, message_id, 'Investments', [[{'text':'Active Investments', 'callback_data':'Active Investments'}],
                                                                         [{'text':'Create New Investment', 'callback_data':'New Investment'}],
+                                                                        [{'text':'Add Payout Time', 'callback_data':'Payout Time'}],
                                                                         [{'text':'Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
 
@@ -415,6 +442,31 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_text += f'{i}\n'
                 bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back', 'callback_data':'Investments'}]])
                 create_inve.append(sender_id)
+                bot.get_updates(offset = update_id+1)
+
+            elif callback_data == 'Payout Time' and sender_id in logged_in:
+                pending = grab_data_two.payout_time()
+                full_code = []
+                for a in pending:
+                    full_code.append({'text':f'{a}', 'callback_data':f'{a}'})
+                c = 1
+                d = 0
+                part = []
+                while full_code[-1] not in full_code[d:c]:
+                    part.append(full_code[d:c])
+                    c += 1
+                    d += 1
+                if full_code[-1] in full_code[d:c]:
+                    part.append(full_code[d:c])
+                    part.append([{'text':'Back','callback_data':'Investments'}])
+                add_payout.append(sender_id)
+                bot.edit_message_two(group_id, message_id, 'Select an Investment where Payout Time is missing', part)
+                bot.get_updates(offset = update_id+1)
+
+            elif callback_data in grab_data_two.payout_time() and sender_id in add_payout and sender_id in logged_in:
+                payout_pro[sender_id] = callback_data
+                payout_time = grab_data_two.next_payout(callback_data)
+                bot.edit_message_two(group_id, message_id, f'{callback_data} Payout is currently sent every 0 days\\. Send after how many days payout would be available to be sent\n\nExample\nIf you want X Product to be available for payout everey 30 days, send 30, if every 3 months, send 90', [[{'text':'Back', 'callback_data':'Investments'}]])
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'Confirm Delete' and sender_id in logged_in:
@@ -550,7 +602,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
         else:
             text = current_updates['message']['text']
-
+            print(text)
             if text == '/start' and sender_id in logged_in:
                 bot.send_message_four(sender_id, '*BitBot Company Panel*', [
                                                                         [{'text':'General Ledger', 'callback_data':'General Ledger'}], 
@@ -727,16 +779,64 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             if sender_id in create_inve and sender_id in logged_in:
                 types = grab_data_two.inve_cate(text)
                 if types == []:
-                    bot.send_message_four(sender_id, 'Category Name do not exist. Creating new category\n\nInput a new Invesment Type name', [[{'text':'Back', 'callback_data':'Investments'}]])
+                    bot.send_message_four(sender_id, 'Category Name do not exist\\. Creating new category\n\nInput a new Invesment Type name', [[{'text':'Back', 'callback_data':'Investments'}]])
                     inve_category[sender_id] = text
+                    create_inve.remove(sender_id)
                     bot.get_updates(offset = update_id+1)
                 else:
                     full_text = 'Category Exist\\. Enter an existing or a new invesment type\\. Current Investment Types\n\n'
                     for i in types:
                         full_text += f'{i}\n'
                     inve_category[sender_id] = text
+                    create_inve.remove(sender_id)
                     bot.send_message_four(sender_id, full_text, [[{'text':'Back', 'callback_data':'Investments'}]])
                     bot.get_updates(offset = update_id+1)
+
+            elif sender_id in inve_category and sender_id not in inve_type and sender_id not in inve_name and sender_id in logged_in:
+                types = grab_data_two.inve_type(text)
+                if types == []:
+                    inve_type[sender_id] = text
+                    bot.send_message_four(sender_id, 'Investment Type do no exist\\. Creating new type\n\nInput a new investment name', [[{'text':'Back', 'callback_data':'Investments'}]])
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    full_text = 'Investment type exist\\. Enter an existing or a new invesment product name\\. Product name must be unique\\. First Letter of a Promotional Investments product must be P\\. Current Investment Products\n\n'
+                    products = grab_data_two.inve_products(text)
+                    for i in products:
+                        full_text += f'{i[0]}\n'
+                    inve_type[sender_id] = text
+                    bot.send_message_four(sender_id, full_text, [[{'text':'Back', 'callback_data':'Investments'}]])
+                    bot.get_updates(offset = update_id+1)
+            
+            elif sender_id in inve_type and sender_id in inve_category and sender_id not in inve_name and sender_id in logged_in:
+                all_products = grab_data_two.pro_all()
+                if text in all_products:
+                    bot.send_message_four(sender_id, 'Product already exist. Try again', [[{'text':'Back', 'callback_data':'Investments'}]])
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    inve_name[sender_id] = text
+                    bot.send_message_four(sender_id, 'Enter Prodcut cost in bits', [[{'text':'Back', 'callback_data':'Investments'}]])
+                    bot.get_updates(offset = update_id+1)
+
+            elif sender_id in inve_name and sender_id not in inve_payout and sender_id not in inve_create and sender_id not in inve_cost and sender_id in inve_type and sender_id in logged_in:
+                inve_cost[sender_id] = int(text)
+                all_types = grab_data_two.type_all()
+                if inve_type[sender_id] in all_types:
+                    rate = float(grab_data_two.pay_rate(inve_type[sender_id]))
+                    data_input.investment_types(inve_category[sender_id], inve_type[sender_id], inve_name[sender_id], rate, int(text), 0)
+                    bot.send_message_four(sender_id, f'Successfully Created Investment Product\n\nCategory: {inve_category[sender_id]}\nType: {inve_type[sender_id]}\nName: {inve_name[sender_id]}\nCost: {int(inve_cost[sender_id])}\nPayout Rate: {int(rate)}',[[{'text':'Done', 'callback_data':'Investments'}]])
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    inve_cost[sender_id] = int(text)
+                    inve_create.append(sender_id)
+                    bot.send_message_four(sender_id, 'Enter Producut Payout Rate', [[{'text':'Back', 'callback_data':'Investments'}]])
+                    bot.get_updates(offset = update_id+1)
+
+            elif sender_id in inve_name and sender_id in inve_cost and sender_id in inve_create and sender_id in logged_in:
+                inve_payout[sender_id] = float(text)
+                data_input.investment_description(inve_type[sender_id], 'To be added', float(inve_payout[sender_id]))
+                data_input.investment_types(inve_category[sender_id], inve_type[sender_id], inve_name[sender_id], float(text), int(inve_cost[sender_id]), 0)
+                bot.send_message_four(sender_id, f'Successfully Created Investment Product\n\nCategory: {inve_category[sender_id]}\nType: {inve_type[sender_id]}\nName: {inve_name[sender_id]}\nCost: {int(inve_cost[sender_id])}\nPayout Rate: {int(inve_payout[sender_id])}',[[{'text':'Done', 'callback_data':'Investments'}]])
+                bot.get_updates(offset = update_id+1)
 
             if 'withdraw' in text and len(text.split(' ')) == 2 and sender_id in logged_in:
                 b = text.split(' ')
@@ -777,6 +877,13 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.send_message_four(sender_id, f'Are you sure you want to delete {b[0]}?', [[{'text':'Confirm', 'callback_data':'Confirm Delete'},{'text':'Back', 'callback_data':'Tools'}]])
                     delete_user[sender_id] = b[0]
                     bot.get_updates(offset = update_id+1)
+            
+            if sender_id in add_payout and sender_id in payout_pro and sender_id in logged_in:
+                days = 86400*int(text)
+                update_data.payout_time(payout_pro[sender_id], days)
+                bot.send_message_four(sender_id, 'Payout TIme Updated', [[{'text':'Done', 'callback_data':'Investments'}]])
+                bot.get_updates(offset = update_id+1)
+
 
             if len(text) > 64 and len(text.split(' ')) == 2 and sender_id in logged_in:
                 b = text.split(' ')
