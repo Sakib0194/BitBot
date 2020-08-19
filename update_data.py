@@ -143,3 +143,19 @@ def payout_pending(product):
         sql = f"UPDATE investment_description SET Payout_Pending = 'False' WHERE Investment_Type = '{product}'"
         cur = conn.cursor()
         cur.execute(sql)
+
+def tree_percentage(username, rate):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE amba_info SET Residual_Percentage = '{rate}' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
+
+def payout_time(product, time):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE investment_description SET Payout_time = '{time}' WHERE Investment_Type = '{product}'"
+        cur = conn.cursor()
+        cur.execute(sql)
