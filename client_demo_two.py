@@ -156,22 +156,25 @@ def starter():
             #print(current_updates)
             update_id = current_updates['update_id']
             #bot.get_updates(offset = update_id+1)
-            if 'callback_query' in current_updates:
-                #print('inline keyboard detected')
-                sender_id = current_updates['callback_query']['from']['id']
-                group_id = current_updates['callback_query']['message']['chat']['id']
-                message_id = current_updates['callback_query']['message']['message_id']
-                callback_data = current_updates['callback_query']['data']
-                bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0 , callback_data=callback_data, callback=True)
-            else:
-                group_id = current_updates['message']['chat']['id']
-                sender_id = current_updates['message']['from']['id']
-                message_id = current_updates['message']['message_id']
-                dict_checker = []
-                for keys in current_updates.get('message'):
-                    dict_checker.append(keys)
-                if sender_id == group_id:
-                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker)
+            try:
+                if 'callback_query' in current_updates:
+                    #print('inline keyboard detected')
+                    sender_id = current_updates['callback_query']['from']['id']
+                    group_id = current_updates['callback_query']['message']['chat']['id']
+                    message_id = current_updates['callback_query']['message']['message_id']
+                    callback_data = current_updates['callback_query']['data']
+                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0 , callback_data=callback_data, callback=True)
+                else:
+                    group_id = current_updates['message']['chat']['id']
+                    sender_id = current_updates['message']['from']['id']
+                    message_id = current_updates['message']['message_id']
+                    dict_checker = []
+                    for keys in current_updates.get('message'):
+                        dict_checker.append(keys)
+                    if sender_id == group_id:
+                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker)
+            except:
+                bot.get_updates(offset = update_id+1)
 
 def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, callback_data=0, callback=False):
     try:
@@ -444,7 +447,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'My Investment' and sender_id in logged_in:
-                if grab_data_two.holding_holding(saved_username[sender_id]) == 'Nothing':
+                if grab_data_two.holding_holding(saved_username[sender_id]) == 'Nothing' or grab_data_two.holding_holding(saved_username[sender_id]) == None:
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
@@ -496,7 +499,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Sell An Investment' and sender_id in logged_in:
-                if grab_data_two.holding_holding(saved_username[sender_id]) == 'Nothing':
+                if grab_data_two.holding_holding(saved_username[sender_id]) == 'Nothing' or grab_data_two.holding_holding(saved_username[sender_id]) == None:
                     bot.edit_message_two(group_id, message_id, 'No investment available for selling', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
                 elif len(grab_data_two.holding_holding(saved_username[sender_id])) == 0:
@@ -564,7 +567,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     time_sold = int(grab_data_two.inve_sold(pro_name[sender_id]))
                     time_sold += 1
                     update_data.invement_sold(pro_name[sender_id], time_sold)
-                    holding = grab_data_two.holding_holding(saved_username[sender_id]).split(' ')
+                    holding = grab_data_two.holding_holding(saved_username[sender_id])
+                    if holding == None or holding == 'Nothing':
+                        holding = []
+                    else:
+                        holding = holding.split(' ')
                     if pro_name[sender_id] in holding and sender_id not in update_success:
                         a = 0
                         while holding[a] != pro_name[sender_id]:
@@ -1068,7 +1075,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 report_bug.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
     except Exception as e:
-        print('error', current_updates)
+        #print('error', current_updates)
         print(e)
         bot.get_updates(offset = update_id+1)
 
