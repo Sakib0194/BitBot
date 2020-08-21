@@ -117,16 +117,19 @@ temp_acc = {} #to update refer number
 submitting = [] #While submitting pass
 temp_pass = {} #While submitting pass
 
-logged_in = [468930122, 1211908888] #after logged in
+logged_in = [468930122,1211908888] #after logged in
 report_bug = []
 
 loggin_in = [] #login
 password_in = [] #login
 
+sumamry_pass = []#Summary
+
 registering = [] #register
 user_regis = [] #register
+register_id = {}
 
-saved_username = {468930122:'Sakib0194', 1211908888:'Vito'} #For saving username
+saved_username = {1211908888:'Vito', 468930122:'Sakib0194'} #For saving username
 saved_amba = {} #for saving amba code
 
 withdraw = []# when withdrawing
@@ -181,8 +184,16 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
         if callback == True:
             #print(message_id)
             print(callback_data)
+            if sender_id not in logged_in:
+                if callback_data == 'Register' or callback_data == 'Accept' or callback_data == 'Login' or callback_data == 'Reject':
+                    pass
+                else:
+                    bot.send_message_four(sender_id, '👤 *BitBot Client Authorization*\n\nSend /help to get more details', [[{'text':'🔑 Log In', 'callback_data': 'Login'}, {'text':'®️ Register', 'callback_data':'Register'}]])
+                    bot.get_updates(offset = update_id+1)
+
             if callback_data == 'None':
                 bot.get_updates(offset = update_id+1)
+
             if callback_data == 'Login':
                 bot.edit_message(group_id, message_id, 'Please enter your *BitBot Username*')
                 if sender_id in registering:
@@ -292,6 +303,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             if callback_data == 'Back' and sender_id in logged_in:
                 if sender_id in update_success:
                     update_success.remove(sender_id)
+                if sender_id in sumamry_pass:
+                    sumamry_pass.remove(sender_id)
                 promo = grab_data_two.hold_promo(saved_username[sender_id])
                 stand = grab_data_two.hold_stand(saved_username[sender_id])
                 tol_bal = grab_data_two.balance_balance(saved_username[sender_id])
@@ -299,7 +312,13 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.edit_message_two(group_id, message_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
                                                                         [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}], 
+                                                                        [{'text':'My Summary', 'callback_data':'My Summary'}],
                                                                         [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
+                bot.get_updates(offset = update_id+1)
+
+            if callback_data == 'My Summary' and sender_id in logged_in:
+                sumamry_pass.append(sender_id)
+                bot.edit_message_two(group_id, message_id, 'Enter your *Password*', [[{'text':'↩️ Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'Ambassador Account' and sender_id in logged_in:
@@ -848,7 +867,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
         else:
             text = current_updates['message']['text']
             print(text)
-
             if text == '/help':
                 bot.send_message(sender_id, grab_data_two.help_text())
                 bot.send_message(sender_id, 'Type /start to get back to the main menu')
@@ -899,6 +917,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     sell_invest.remove(sender_id)
                 if sender_id in buy_invest:
                     buy_invest.remove(sender_id)
+                if sender_id in sumamry_pass:
+                    sumamry_pass.remove(sender_id)
                 promo = grab_data_two.hold_promo(saved_username[sender_id])
                 stand = grab_data_two.hold_stand(saved_username[sender_id])
                 tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id]))
@@ -906,6 +926,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
                                                                         [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}], 
+                                                                        [{'text':'My Summary', 'callback_data':'My Summary'}],
                                                                         [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
                 bot.get_updates(offset = update_id+1)
 
@@ -922,11 +943,12 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     password_in.append(sender_id)
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in password_in and grab_data_two.user_password(text)[0] == 'Nothing':
+            elif sender_id in password_in and text != grab_data_two.user_password(saved_username[sender_id]):
                 bot.send_message(sender_id, 'Incorrect password, please try again')
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in password_in and text in grab_data_two.user_password(text)[0]:
+            elif sender_id in password_in and text == grab_data_two.user_password(saved_username[sender_id]):
+                bot.delete_message(sender_id, message_id)
                 bot.send_message(sender_id, 'Welcome Back\\!')
                 password_in.remove(sender_id)
                 if sender_id not in logged_in:
@@ -940,6 +962,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
                                                                         [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}], 
+                                                                        [{'text':'My Summary', 'callback_data':'My Summary'}],
                                                                         [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
                 bot.get_updates(offset = update_id+1)
             
@@ -956,11 +979,20 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.send_message(sender_id, 'Sorry, the access code is invalid\\.\nFor assistance, please contact our [Support Team](https://t.me/BitBotTeam)', disable_web_page_preview=True)
                 bot.get_updates(offset = update_id+1)
 
+            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text)[0] == 'Nothing' and len(text) > 2 and len(text) < 11 and '-' in text:
+                bot.send_message(sender_id, 'Username Invalid\\. Please type a new one')
+                bot.get_updates(offset = update_id+1)
+
+            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text)[0] == 'Nothing' and len(text) > 2 and len(text) < 11 and '_' in text:
+                bot.send_message(sender_id, 'Username Invalid\\. Please type a new one')
+                bot.get_updates(offset = update_id+1)
+
             elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text)[0] == 'Nothing' and len(text) > 2 and len(text) < 11:
+                register_id[sender_id] = message_id+1
                 code = generate_pass()
                 passw = code[0]
                 amba_code = code[1]
-                while passw in grab_data_two.user_password(passw)[0] or amba_code in grab_data_two.user_amba(amba_code)[0]:
+                while passw in grab_data_two.all_pass() or amba_code in grab_data_two.all_amba():
                     code = generate_pass()
                     passw = code[0]
                     amba_code = code[1]
@@ -976,10 +1008,12 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif sender_id in user_regis and len(text) > 2 and text in grab_data_two.user_username(text)[0]:
-                bot.send_message(sender_id, 'Username already exist. Please type a new one')
+                bot.send_message(sender_id, 'Username already exist\\. Please type a new one')
                 bot.get_updates(offset = update_id+1)
 
             elif sender_id in submitting and text == temp_pass[sender_id] and len(text) > 9:
+                bot.delete_message(sender_id, register_id[sender_id])
+                bot.delete_message(sender_id, message_id)
                 bot.send_message(sender_id, 'Thank you for joining, your account is now ready\\!')
                 if 'username' in current_updates['message']['from']:
                     username = current_updates['message']['from']['username']
@@ -1004,7 +1038,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 total = int(promo) + int(stand) + int(tol_bal)
                 bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
-                                                                        [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}], 
+                                                                        [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}],
+                                                                        [{'text':'My Summary', 'callback_data':'My Summary'}], 
                                                                         [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
                 del temp_pass[sender_id]
                 submitting.remove(sender_id)
@@ -1016,6 +1051,29 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             elif sender_id in submitting and text != temp_pass[sender_id] and len(text) > 9:
                 bot.send_message(sender_id, 'Password does not match, please try again')
                 bot.get_updates(offset = update_id+1)
+
+            if sender_id in sumamry_pass and sender_id in logged_in:
+                password = grab_data_two.user_password(saved_username[sender_id])
+                if text != password:
+                    bot.send_message_four(sender_id, 'Incorrect Password', [[{'text':'Back', 'callback_data': 'Back'}]])
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    bot.delete_message(sender_id, message_id)
+                    details = grab_data_two.user_user(saved_username[sender_id])
+                    promo = grab_data_two.hold_promo(saved_username[sender_id])
+                    stand = grab_data_two.hold_stand(saved_username[sender_id])
+                    dire = grab_data_two.ambaused_username(details[4])
+                    direct = []
+                    for i in dire:
+                        if i == 'Nothing':
+                            pass
+                        else:
+                            direct.append(i[0])
+                    tree = len(tree_tracking.all_refer(details[4]))
+                    all_inve = tree_tracking.down(details[4])
+                    date_joined = details[6].replace('-','\\-')
+                    bot.send_message_four(sender_id, f'Username: {saved_username[sender_id]}\nPassword: {text}\nAmbassador Code: {details[4]}\nAmbassador Code Used: {details[5]}\nDate Joined: {date_joined}\nCurrent Holding: {int(promo)+int(stand)} bits\nDirect Refer: {len(direct)}\nTotal Refer: {tree}\nTotal Invest: {int(all_inve)}', [[{'text':'Back', 'callback_data': 'Back'}]])
+                    bot.get_updates(offset = update_id+1)
 
             if len(text) > 63 and sender_id in logged_in:
                 bot.send_message(sender_id, 'Transaction Hash Detected\\. Processing Deposit')
