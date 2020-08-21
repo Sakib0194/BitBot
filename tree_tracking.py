@@ -12,6 +12,7 @@ def down(refer):
         b = grab_data_two.hold_promo(to_track[a])
         if c == 'Nothing':
             c = 0
+        if b == 'Nothing':
             b = 0
         if 'N' in to_track:
             to_track.remove('N')
@@ -33,6 +34,7 @@ def down(refer):
                     pass
                 else:
                     to_track.append(i[0])
+        #print(to_track)
         to_track.remove(to_track[a])
     tot = 0
     for i in investments:
@@ -59,9 +61,9 @@ def up(username):
     else:
         while to_track != []:
             a = grab_data_two.amba_amba(to_track[0])
-            if a == 'Nothing' or a == 'MANAGER' or a == '0GAN7KD':
+            if a == 'Nothing' or a == 'MANAGER' or a == '0GAN7KD' or a == 'LVXD4A8' or a == 'ADMIN':
                 to_track.remove(to_track[0])
-                if a == 'Nothing':
+                if a == 'Nothing' or a == 'ADMIN':
                     pass
                 else:
                     manage = grab_data_two.amba_username(a)
@@ -70,11 +72,12 @@ def up(username):
     return manage
 
 def qualified_mile(username):
-    enroll = grab_data_two.holding_enrolled(username)
     qualify = 0
     amba_used = grab_data_two.amba_used(username)
-    amba_username = grab_data_two.amba_username(amba_used)
-    if enroll == 'True':
+    if amba_used == 'ADMIN':
+        amba_username = 'Vito'
+    else:
+        amba_username = grab_data_two.amba_username(amba_used)
         direct_ref = grab_data_two.ambaused_username(amba_used)
         for i in direct_ref:
             en = grab_data_two.holding_enrolled(i[0])
@@ -88,24 +91,99 @@ def qualified_mile(username):
 
 
 def qualified_resi(username):
-    enroll = grab_data_two.holding_enrolled(username)
     amba_used = grab_data_two.amba_used(username)
-    amba_username = grab_data_two.amba_username(amba_used)
+    if amba_used == 'ADMIN':
+        amba_username = 'Vito'
+    else:
+        amba_username = grab_data_two.amba_username(amba_used)
     qualify = 0
-    if enroll == 'True':
-        direct_ref = grab_data_two.ambaused_username(amba_used)
-        for i in direct_ref:
-            en = grab_data_two.holding_enrolled(i[0])
-            if en == 'True':
-                promo = grab_data_two.hold_promo(username)
-                stand = grab_data_two.hold_stand(username)
-                if promo+stand >= 1000000:
-                    qualify += 1
-                else:
-                    pass
+    direct_ref = grab_data_two.ambaused_username(amba_used)
+    for i in direct_ref:
+        en = grab_data_two.holding_enrolled(i[0])
+        if en == 'True':
+            promo = grab_data_two.hold_promo(i[0])
+            stand = grab_data_two.hold_stand(i[0])
+            if promo+stand >= 1000000:
+                qualify += 1
+            else:
+                pass
     amount = down(amba_used)
     update_data.tree_investment(amba_used, amount)
     update_data.qualified_residual(amba_username, qualify)
 
 
+def resi_per(username):
+    amba_code = grab_data_two.ambato_username(username)
+    tree = float(down(amba_code))
+    promo = float(grab_data_two.hold_promo(username))
+    stand = float(grab_data_two.hold_stand(username))
+    resi_num = grab_data_two.quali_resi(username)[0][1] 
+    percentage = 0
+    if tree+promo+stand >= 5000000 and resi_num >= 2:
+        percentage = 2
+    if tree+promo+stand >= 10000000 and resi_num >= 2:
+        percentage = 2
+    if tree+promo+stand >= 50000000 and resi_num >= 2:
+        percentage = 3
+    if tree+promo+stand >= 100000000 and resi_num >= 2:
+        percentage = 4
+    update_data.tree_percentage(username, percentage)
+    update_data.tree_investment(amba_code, tree)
 
+'''all_users = grab_data_two.user_all()
+for i in all_users:
+    print(i[0])
+    qualified_mile(i[0])
+    qualified_resi(i[0])
+    resi_per(i[0])'''
+
+def all_refer(refer):
+    to_track = []
+    all_username = []
+    investments = {}
+    refers = grab_data_two.ambaused_username(refer)
+    for i in refers:
+        if i[0] == 'N':
+            pass
+        else:
+            all_username.append(i[0])
+        to_track.append(i[0])
+    a = 0
+    while to_track != []:
+        c = grab_data_two.hold_stand(to_track[a])
+        b = grab_data_two.hold_promo(to_track[a])
+        if c == 'Nothing':
+            c = 0
+        if b == 'Nothing':
+            b = 0
+        if 'N' in to_track:
+            to_track.remove('N')
+        if to_track == []:
+            break
+        #print(to_track)
+        investments[to_track[a]] = b + c
+        #print(to_track)
+        
+        amba = grab_data_two.ambato_username(to_track[a])
+        #print(amba)
+        referrals = grab_data_two.ambaused_username(amba)
+        for i in referrals:
+            if i == 'Nothing':
+                pass
+            else:
+                #print(i[0])
+                if i[0] == 'Nothing':
+                    pass
+                else:
+                    if i[0] in all_username or i[0] == 'N':
+                        pass
+                    else:
+                        all_username.append(i[0])
+                    to_track.append(i[0])
+        #print(to_track)
+        to_track.remove(to_track[a])
+    tot = 0
+    for i in investments:
+        tot += investments[i]
+    all_data[refer] = tot
+    return all_username
