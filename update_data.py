@@ -159,3 +159,11 @@ def payout_time(product, time):
         sql = f"UPDATE investment_description SET Payout_time = '{time}' WHERE Investment_Type = '{product}'"
         cur = conn.cursor()
         cur.execute(sql)
+
+def manager_access(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        sql = f"UPDATE user_info SET Manager = 'YES' WHERE Username = '{username}'"
+        cur = conn.cursor()
+        cur.execute(sql)
