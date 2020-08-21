@@ -121,7 +121,7 @@ create_manager = []
 
 asking_id = []
 asking_pass = []
-logged_in = [468930122, 1211908888]
+logged_in = [1211908888]
 
 id_number = {}
 
@@ -144,6 +144,9 @@ inve_name = {}
 inve_payout = {}
 inve_paydate = {}
 inve_cost = {}
+
+create_admin = []
+admin_user = {}
 
 add_payout = []
 payout_pro = {}
@@ -176,13 +179,22 @@ def starter():
                     if sender_id == group_id:
                         bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker)
             except:
+                #print('Edited')
                 bot.get_updates(offset = update_id+1)
 
 
 def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, callback_data=0, callback=False):
     try:
         if callback == True:
+            if sender_id not in logged_in:
+                bot.send_message(sender_id, 'Please provide your *ID*')
+                if sender_id not in asking_id:
+                    asking_id.append(sender_id)
+                bot.get_updates(offset = update_id+1)
             print(callback_data)
+            if callback_data == 'None':
+                bot.get_updates(offset = update_id+1)
+
             if callback_data == 'General Ledger' and sender_id in logged_in:
                 if sender_id in payout_pen:
                     del payout_pen[sender_id]
@@ -373,17 +385,18 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Manage Withdrawals' and sender_id in logged_in:
-                if 'Pending' in grab_data_two.with_status()[0]:
+                if grab_data_two.with_status()[0][0] == 'Pending':
                     pending_amount = len(grab_data_two.with_status())
                     serials = grab_data_two.with_serial()
                     pending_serials = ''
                     for i in range(pending_amount):
                         pending_serials += f'{str(serials[i][0])} '
-                    bot.edit_message_two(group_id, message_id, f'Total Pending Withdrawals: {pending_amount}\nPending Withdrawal Serials: {pending_serials}\n\nEnter a Serial Number \\+ withdraw to get full details\n\nEnter Serial Number + TX Hash to Complete a withdrawal\n\nexample\n57 withdraw\n91 64\\-length\\-TX\\-hash', [[{'text':'Back', 'callback_data':'General Ledger'}]])
+                    bot.edit_message_two(group_id, message_id, f'Total Pending Withdrawals: {pending_amount}\nPending Withdrawal Serials: {pending_serials}\n\nEnter a Serial Number \\+ withdraw to get full details\n\nEnter Serial Number \\+ TX Hash to Complete a withdrawal\n\nexample\n57 withdraw\n91 64\\-length\\-TX\\-hash', [[{'text':'Back', 'callback_data':'General Ledger'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
                     bot.edit_message_two(group_id, message_id, 'No Withdrawal is Pending', [[{'text':'Back', 'callback_data':'General Ledger'}]])
                     bot.get_updates(offset = update_id+1)
+
             if callback_data == 'Back':
                 if sender_id in credit_acc:
                     credit_acc.remove(sender_id)
@@ -465,7 +478,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             elif callback_data in grab_data_two.payout_time() and sender_id in add_payout and sender_id in logged_in:
                 payout_pro[sender_id] = callback_data
-                payout_time = grab_data_two.next_payout(callback_data)
                 bot.edit_message_two(group_id, message_id, f'{callback_data} Payout is currently sent every 0 days\\. Send after how many days payout would be available to be sent\n\nExample\nIf you want X Product to be available for payout everey 30 days, send 30, if every 3 months, send 90', [[{'text':'Back', 'callback_data':'Investments'}]])
                 bot.get_updates(offset = update_id+1)
 
@@ -502,7 +514,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             if callback_data == 'Log Out' and sender_id in logged_in:
                 bot.send_message(sender_id, 'Logged Out')
                 bot.send_message(sender_id, 'Please Provide your *ID*')
-                asking_id.append(sender_id)
+                if sender_id not in asking_id:
+                    asking_id.append(sender_id)
                 logged_in.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
 
@@ -521,8 +534,12 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     del mana_pass[sender_id]
                 if sender_id in delete_user:
                     del delete_user[sender_id]
-                bot.edit_message_two(group_id, message_id, '*Tools*', [[{'text':'Create Client', 'callback_data':'Create User'}], 
-                                                                    [{'text':'Create Manager', 'callback_data':'Create Manager'}], 
+                if sender_id in create_admin:
+                    create_admin.remove(sender_id)
+                if sender_id in admin_user:
+                    del admin_user[sender_id]
+                bot.edit_message_two(group_id, message_id, '*Admin Tools*', [[{'text':'Create Client', 'callback_data':'Create User'}], 
+                                                                    [{'text':'Create Manager Admin', 'callback_data':'Create Manager Admin'}], 
                                                                     [{'text':'Credit An Account', 'callback_data':'Credit Account'}],
                                                                     [{'text':'Debit An Account', 'callback_data':'Debit Account'}],
                                                                     [{'text':'Password Reset', 'callback_data':'Password Reset'}],
@@ -539,7 +556,13 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.edit_message_two(group_id, message_id, 'Enter a Client Username', [[{'text':'Back', 'callback_data':'Back'}]])
                 debit_acc.append(sender_id)
                 bot.get_updates(offset = update_id+1)
-            
+
+            elif callback_data == 'Create Manager Admin' and sender_id in logged_in:
+                bot.edit_message_two(group_id, message_id, 'Select an Option', [[{'text':'Create Admin', 'callback_data':'Create Manager'}],
+                                                                                [{'text':'Create Manager', 'callback_data':'Create Admin'}],
+                                                                                [{'text':'Back', 'callback_data':'Tools'}]])
+                bot.get_updates(offset = update_id+1)
+
             elif callback_data == 'Password Reset' and sender_id in logged_in:
                 bot.edit_message_two(group_id, message_id, 'Enter a Client Username \\+ reset to get a new password\n\nExample\nSakib0194 reset', [[{'text':'Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
@@ -563,11 +586,16 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     create_user.append(sender_id)
                 bot.get_updates(offset = update_id+1)
 
+            elif callback_data == 'Create Admin' and sender_id in logged_in:
+                create_admin.append(sender_id)
+                bot.edit_message_two(group_id, message_id, 'Enter the Username of the account to Promote', [[{'text':'Back', 'callback_data':'Tools'}]])
+                bot.get_updates(offset = update_id+1)
+
             elif callback_data == 'Create Manager' and sender_id in logged_in:
                 code = generate_pass()
                 passw = code[0]
                 amba_code = code[1]
-                while passw in grab_data_two.mana_id(passw)[0] or amba_code in grab_data_two.mana_password(amba_code)[0]:
+                while passw in grab_data_two.all_manapass() or amba_code in grab_data_two.all_id():
                     code = generate_pass()
                     passw = code[0]
                     amba_code = code[1]
@@ -576,6 +604,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.edit_message_two(group_id, message_id, f'Generated ID: {amba_code}\nGenerated Password: {passw}\n\nInsert the Required Credential sequentially following with a space\n\nTelegram ID None if not available\nFirst Name one word only, None if not available\nSpecial Access YES or NO only, only uppercase letter\nUsername from Client Bot\nAmbassador Code from Client Bot\n\nexample of the message\n468930122 Ruth NO Vito LVXD4A8', [[{'text':'Back', 'callback_data':'Tools'}]])
                 if sender_id not in create_manager:
                     create_manager.append(sender_id)
+                bot.get_updates(offset = update_id+1)
+
+            if callback_data == 'Confirm Admin' and sender_id in logged_in:
+                update_data.manager_access(admin_user[sender_id])
+                bot.edit_message_two(group_id, message_id, f'{admin_user[sender_id]} has been promoted to Manager', [[{'text':'Back', 'callback_data':'Tools'}]])
                 bot.get_updates(offset = update_id+1)
             
             if callback_data == 'Cancel':
@@ -603,6 +636,12 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
         else:
             text = current_updates['message']['text']
             print(text)
+            if sender_id not in logged_in:
+                if sender_id not in asking_id and sender_id not in asking_pass:
+                    bot.send_message(sender_id, 'Please provide your *ID*')
+                    if sender_id not in asking_id:
+                        asking_id.append(sender_id)
+                    bot.get_updates(offset = update_id+1)
             if text == '/start' and sender_id in logged_in:
                 bot.send_message_four(sender_id, '*BitBot Company Panel*', [
                                                                         [{'text':'General Ledger', 'callback_data':'General Ledger'}], 
@@ -615,7 +654,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             if text == '/start' and sender_id not in logged_in:
                 bot.send_message(sender_id, 'Please provide your *ID*')
-                asking_id.append(sender_id)
+                if sender_id not in asking_id:
+                    asking_id.append(sender_id)
                 bot.get_updates(offset = update_id+1)
             
             elif sender_id in asking_id and grab_data_two.mana_id(text)[0] == 'Nothing':
@@ -629,12 +669,13 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 asking_pass.append(sender_id)
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in asking_pass and grab_data_two.mana_password(text)[0] == 'Nothing':
+            elif sender_id in asking_pass and text != grab_data_two.mana_password(id_number[sender_id]):
                 bot.send_message(sender_id, 'Incorrect *password*, please try again')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in asking_pass and text in grab_data_two.mana_password(text)[0] and grab_data_two.mana_access(id_number[sender_id]) == 'YES':
+            elif sender_id in asking_pass and text == grab_data_two.mana_password(id_number[sender_id]) and grab_data_two.mana_access(id_number[sender_id]) == 'YES':
                 bot.send_message(sender_id, 'Access Granted')
+                bot.delete_message(sender_id, message_id)
                 bot.send_message_four(sender_id, '*BitBot Company Panel*', [
                                                                         [{'text':'General Ledger', 'callback_data':'General Ledger'}], 
                                                                         [{'text':'Managers', 'callback_data':'Managers'}],
@@ -865,6 +906,17 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     update_data.password(b[0], new_pass)
                     bot.send_message(sender_id, 'Successfully Updated Password\\. New Pass:')
                     bot.send_message_four(sender_id, new_pass, [[{'text':'Back', 'callback_data':'Tools'}]])
+                    bot.get_updates(offset = update_id+1)
+
+            if sender_id in create_admin and sender_id in logged_in:
+                all_user = grab_data_two.user_all()
+                if text in all_user:
+                    bot.send_message_four(sender_id, 'Username not found', [[{'text':'Cancel','callback_data':'Tools'}]])
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    admin_user[sender_id] = text
+                    bot.send_message_four(sender_id, f'Are you sure you want to promote {text} to a Manager?', [[{'text':'Confirm', 'callback_data':'Confirm Admin'}],
+                                                                                                                [{'text':'Cancel','callback_data':'Tools'}]])
                     bot.get_updates(offset = update_id+1)
 
             if 'delete' in text and len(text.split(' ')) == 2 and sender_id in logged_in:

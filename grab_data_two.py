@@ -12,18 +12,18 @@ def user_username(username):
         else:  
             return rows
 
-def user_password(password):
+def user_password(username):
     database = r"/mnt/sda1/database_test/dam_bot.db"
     conn = sqlite3.connect(database)
     with conn:
         cur = conn.cursor()
-        cur.execute(f"SELECT Password FROM user_info WHERE Password = '{password}'")
+        cur.execute(f"SELECT Password FROM user_info WHERE Username = '{username}'")
         rows = cur.fetchall()
         if rows == []:
-            rows = ['Nothing']
+            rows = 'Nothing'
             return rows
         else:  
-            return rows
+            return rows[0][0]
 
 def user_amba(amba_code):
     database = r"/mnt/sda1/database_test/dam_bot.db"
@@ -120,18 +120,18 @@ def mana_id(id_Number):
             return rows
 
 
-def mana_password(password):
+def mana_password(id_number):
     database = r"/mnt/sda1/database_test/dam_bot.db"
     conn = sqlite3.connect(database)
     with conn:
         cur = conn.cursor()
-        cur.execute(f"SELECT Password FROM managers WHERE Password = '{password}'")
+        cur.execute(f"SELECT Password FROM managers WHERE ID_Number = '{id_number}'")
         rows = cur.fetchall()
         if rows == []:
-            rows = ['Nothing']
+            rows = 'Nothing'
             return rows
         else:  
-            return rows
+            return rows[0][0]
 
 def mana_access(id_number):
     database = r"/mnt/sda1/database_test/dam_bot.db"
@@ -759,6 +759,35 @@ def payout_details(username):
         else:
             return rows
 
+def payout_everything(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Username, Investment_Type, Value FROM payout_transactions WHERE Username = '{username}'")
+        rows = cur.fetchall()
+        if rows == []:
+            rows = 'Nothing'
+            return rows
+        else:
+            return rows
+
+def payout_value(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Value FROM payout_transactions WHERE Username = '{username}'")
+        rows = cur.fetchall()
+        if rows == []:
+            rows = 0
+            return rows
+        else:
+            full_value = 0
+            for i in rows:
+                full_value += i[0]
+            return full_value
+
 def quali_resi(username):
     database = r"/mnt/sda1/database_test/dam_bot.db"
     conn = sqlite3.connect(database)
@@ -930,5 +959,71 @@ def next_payout(product):
     with conn:
         cur = conn.cursor()
         cur.execute(f"SELECT Payout_Time from investment_description WHERE Investment_Type = '{product}'")
+        rows = cur.fetchall()
+        return rows[0][0]
+
+def manager_username(id_number):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Ambassador_Code from Managers WHERE ID_Number = '{id_number}'")
+        rows = cur.fetchall()
+        return rows[0][0]
+
+def all_pass():
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Password from user_info")
+        rows = cur.fetchall()
+        unique = []
+        for i in rows:
+            unique.append(i[0])
+        return unique
+
+def all_amba():
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Ambassador_Code from amba_info")
+        rows = cur.fetchall()
+        unique = []
+        for i in rows:
+            unique.append(i[0])
+        return unique
+
+def all_id():
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT ID_Number from Managers")
+        rows = cur.fetchall()
+        unique = []
+        for i in rows:
+            unique.append(i[0])
+        return unique
+
+def all_manapass():
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Password from Managers")
+        rows = cur.fetchall()
+        unique = []
+        for i in rows:
+            unique.append(i[0])
+        return unique
+
+def manager_access(username):
+    database = r"/mnt/sda1/database_test/dam_bot.db"
+    conn = sqlite3.connect(database)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT Manager from user_info WHERE Username = '{username}'")
         rows = cur.fetchall()
         return rows[0][0]
