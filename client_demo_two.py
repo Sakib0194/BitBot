@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import requests, json, random, string, time, datetime, requests, mysql.connector
 import data_input, update_data, grab_data_two, tree_tracking
 
