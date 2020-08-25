@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import requests, json, random, string, time, datetime, mysql.connector
 import update_data, data_input, grab_data_two, delete_row, payout_demo, tree_tracking
 class BoilerPlate:
@@ -504,7 +503,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'Confirm Delete' and sender_id in logged_in:
-                delete_row.user_info(delete_user[sender_id])
+                delete_row.user_info(delete_user[sender_id], cur)
                 bot.edit_message_two(group_id, message_id, f'{delete_user[sender_id]} has been deleted', [[{'text':'Back', 'callback_data':'Tools'}]])
                 del delete_user[sender_id]
                 bot.get_updates(offset = update_id+1)
