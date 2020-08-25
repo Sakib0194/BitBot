@@ -1,16 +1,16 @@
 import grab_data_two
 
-def details(product):
-    pro = grab_data_two.inve_name(product)
+def details(product, cur):
+    pro = grab_data_two.inve_name(product, cur)
     cost = {}
     for i in pro:
-        cost[i] = grab_data_two.inve_price(i)
-    all_holdings = grab_data_two.holding_holding_two()
+        cost[i] = grab_data_two.inve_price(i, cur)
+    all_holdings = grab_data_two.holding_holding_two(cur)
     holding_sorted = {}
     values = {}
     for i in all_holdings:
         for h in i:
-            if len(h) == 0:
+            if h == None or len(h) == 0:
                 all_holdings.remove(i)
     for i in all_holdings:
         holding_sorted[i[0]] = i[1]
