@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import mysql.connector
 def balance_info(username, balance, cur):
     sql = f"UPDATE balance_info SET Investment_Balance = '{balance}' WHERE Username = '{username}'"
