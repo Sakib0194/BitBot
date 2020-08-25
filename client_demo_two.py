@@ -1,5 +1,5 @@
-import requests, json, random, string, time, datetime, requests
-import data_input, grab_data, update_data, grab_data_two, tree_tracking
+import requests, json, random, string, time, datetime, requests, mysql.connector
+import data_input, update_data, grab_data_two, tree_tracking
 
 class BoilerPlate:
     def __init__(self, token):
@@ -109,8 +109,8 @@ def time_splitter(time):
 token = '1259681061:AAHRaJrnAYzEkmhiXlw9Xw1d3l6-85MPNX8'
 offset = 0
 
-
-
+conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
+cur = conn.cursor()
 
 
 temp_acc = {} #to update refer number
@@ -152,8 +152,13 @@ def investment_num(investment):
 bot = BoilerPlate(token)
 
 def starter():
-    global offset
+    global offset, conn, cur
     while True:
+        if conn.is_connected() == True:
+            pass
+        else:
+            conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
+            cur = conn.cursor()
         all_updates = bot.get_updates(offset)
         for current_updates in all_updates:
             #print(current_updates)
@@ -166,7 +171,7 @@ def starter():
                     group_id = current_updates['callback_query']['message']['chat']['id']
                     message_id = current_updates['callback_query']['message']['message_id']
                     callback_data = current_updates['callback_query']['data']
-                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0 , callback_data=callback_data, callback=True)
+                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0, cur, callback_data=callback_data, callback=True)
                 else:
                     group_id = current_updates['message']['chat']['id']
                     sender_id = current_updates['message']['from']['id']
@@ -175,11 +180,11 @@ def starter():
                     for keys in current_updates.get('message'):
                         dict_checker.append(keys)
                     if sender_id == group_id:
-                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker)
+                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur)
             except:
                 bot.get_updates(offset = update_id+1)
 
-def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, callback_data=0, callback=False):
+def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur, callback_data=0, callback=False):
     try:
         if callback == True:
             #print(message_id)
@@ -205,7 +210,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'Register':
-                if str(sender_id) in grab_data_two.user_tele(str(sender_id))[0]:
+                if str(sender_id) in grab_data_two.user_tele(str(sender_id), cur)[0]:
                     bot.edit_message_two(group_id, message_id, 'You already have an account\\. Please Log In using your details', [[{'text':'Login', 'callback_data': 'Login'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
@@ -231,9 +236,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'Main Balance' and sender_id in logged_in:
-                promo = grab_data_two.hold_promo(saved_username[sender_id])
-                stand = grab_data_two.hold_stand(saved_username[sender_id])
-                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id]))
+                promo = grab_data_two.hold_promo(saved_username[sender_id], cur)
+                stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
+                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id], cur))
                 total = int(promo) + int(stand) + int(tol_bal)
                 bot.edit_message_two(group_id, message_id, f'👤 *My BitBot Balance \\- {saved_username[sender_id]}*', [[{'text': f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'None'}], 
                                                                             [{'text':f'💵 Available Balance: {investment_num(tol_bal)} bits','callback_data':'None'}],
@@ -251,7 +256,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Request Withdrawal' and sender_id in logged_in:
-                bot.edit_message(group_id,message_id, f'Your Current Balance is {investment_num(grab_data_two.balance_balance(saved_username[sender_id]))} bits')
+                bot.edit_message(group_id,message_id, f'Your Current Balance is {investment_num(grab_data_two.balance_balance(saved_username[sender_id], cur))} bits')
                 bot.send_message(sender_id, 'Enter the amount of bits to withdraw in the following manner\n\nexample message\n11540 bits\n5687 bits\n55780 bits')
                 if sender_id not in withdraw:
                     withdraw.append(sender_id)
@@ -263,7 +268,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Deposit History' and sender_id in logged_in:
-                data = grab_data_two.depo_user(saved_username[sender_id])
+                data = grab_data_two.depo_user(saved_username[sender_id], cur)
                 if data == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
@@ -272,17 +277,17 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_text = ''
                     for i in data:
                         if len(full_text) > 4000:
-                            pass
-                        else:
-                            amount = investment_num(float(i[2])).replace('.', '\\.')
-                            date = i[0].replace('-', '\\-')
-                            full_text += f'{serial}\\. Time: {date} \\| Transaction Hash: {i[1]} \\| Amount: {amount} bits\n\n'
-                            serial += 1
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
+                        amount = investment_num(float(i[2])).replace('.', '\\.')
+                        date = i[0].replace('-', '\\-')
+                        full_text += f'{serial}\\. Time: {date} \\| Transaction Hash: {i[1]} \\| Amount: {amount} bits\n\n'
+                        serial += 1
                     bot.edit_message_two(group_id, message_id, full_text, [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Withdraw History' and sender_id in logged_in:
-                data = grab_data_two.with_user(saved_username[sender_id])
+                data = grab_data_two.with_user(saved_username[sender_id], cur)
                 if data == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
@@ -291,12 +296,12 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_text = ''
                     for i in data:
                         if len(full_text) > 4000:
-                            pass
-                        else:
-                            date = i[0].replace('-', '\\-')
-                            amount = investment_num(float(i[3])).replace('.', '\\.')
-                            full_text += f'{serial}\\. Time: {date} \\| Withdrawal Address: {i[1]} \\| Transaction Hash{i[2]} \\| Amount {amount} bits \\| Status {i[4]}\n\n'
-                            serial += 1
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
+                        date = i[0].replace('-', '\\-')
+                        amount = investment_num(float(i[3])).replace('.', '\\.')
+                        full_text += f'{serial}\\. Time: {date} \\| Withdrawal Address: {i[1]} \\| Transaction Hash{i[2]} \\| Amount {amount} bits \\| Status {i[4]}\n\n'
+                        serial += 1
                     bot.edit_message_two(group_id, message_id, full_text, [[{'text':'↩️ Back', 'callback_data':'History'}]])
                     bot.get_updates(offset = update_id+1)
 
@@ -305,9 +310,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     update_success.remove(sender_id)
                 if sender_id in sumamry_pass:
                     sumamry_pass.remove(sender_id)
-                promo = grab_data_two.hold_promo(saved_username[sender_id])
-                stand = grab_data_two.hold_stand(saved_username[sender_id])
-                tol_bal = grab_data_two.balance_balance(saved_username[sender_id])
+                promo = grab_data_two.hold_promo(saved_username[sender_id], cur)
+                stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
+                tol_bal = grab_data_two.balance_balance(saved_username[sender_id], cur)
                 total = int(promo) + int(stand) + int(tol_bal)
                 bot.edit_message_two(group_id, message_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
@@ -322,11 +327,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'Ambassador Account' and sender_id in logged_in:
-                referred = grab_data_two.amba_refered(saved_username[sender_id])
-                tree_tracking.qualified_mile(saved_username[sender_id])
-                tree_tracking.qualified_resi(saved_username[sender_id])
-                tree = grab_data_two.amba_tree(saved_username[sender_id])
-                amba_balance = grab_data_two.balance_amba(saved_username[sender_id])
+                referred = grab_data_two.amba_refered(saved_username[sender_id], cur)
+                tree_tracking.qualified_mile(saved_username[sender_id], cur)
+                tree_tracking.qualified_resi(saved_username[sender_id], cur)
+                tree = grab_data_two.amba_tree(saved_username[sender_id], cur)
+                amba_balance = grab_data_two.balance_amba(saved_username[sender_id], cur)
                 bot.edit_message_two(group_id, message_id, f'👤 *My Ambassador \\- {saved_username[sender_id]}\n\nDirect Referrals: {referred}*', [[{'text':f'My Ambassador Volume: {investment_num(tree)} bits', 'callback_data':'None'}],
                                                                                                                                                 [{'text':f'My Ambassador Earnings: {investment_num(amba_balance)} bits', 'callback_data':'Ambassador Earning'}],
                                                                                                                                                 [{'text':'Ambassador Compensation Plan', 'callback_data':'Ambassador Compensation'}],
@@ -341,7 +346,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Milestone Bonus' and sender_id in logged_in:
-                data = grab_data_two.ambatra_milestone(saved_username[sender_id])
+                data = grab_data_two.ambatra_milestone(saved_username[sender_id], cur)
                 if data == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'Ambassador Earning'}]])
                     bot.get_updates(offset = update_id+1)
@@ -349,6 +354,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     serial = 1
                     full_text = ''
                     for i in data:
+                        if len(full_text) > 4000:
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
                         amount = investment_num(float(i[1])).replace('.', '\\.')
                         full_text += f'{serial}\\. Type: {i[0]} \\| Amount: {amount} bits \\| Description: {i[2]}\n\n'
                         serial += 1
@@ -356,7 +364,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Referral Bonus' and sender_id in logged_in:
-                data = grab_data_two.ambatra_referral(saved_username[sender_id])
+                data = grab_data_two.ambatra_referral(saved_username[sender_id], cur)
                 if data == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'Ambassador Earning'}]])
                     bot.get_updates(offset = update_id+1)
@@ -364,6 +372,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     serial = 1
                     full_text = ''
                     for i in data:
+                        if len(full_text) > 4000:
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
                         amount = investment_num(float(i[1])).replace('.', '\\.')
                         full_text += f'{serial}\\. Type: {i[0]} \\| Amount: {amount} bits \\| Description: {i[2]}\n\n'
                         serial += 1
@@ -371,7 +382,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Residual Bonus' and sender_id in logged_in:
-                data = grab_data_two.ambatra_residual(saved_username[sender_id])
+                data = grab_data_two.ambatra_residual(saved_username[sender_id], cur)
                 if data == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'↩️ Back', 'callback_data':'Ambassador Earning'}]])
                     bot.get_updates(offset = update_id+1)
@@ -379,6 +390,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_text = ''
                     serial = 1
                     for i in data:
+                        if len(full_text) > 4000:
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
                         amount = investment_num(float(i[1])).replace('.', '\\.')
                         full_text += f'{serial}\\. Type: {i[0]} \\| Amount: {amount} bits \\| Description: {i[2]}\n\n'
                         serial += 1
@@ -417,8 +431,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     sell_invest.remove(sender_id)
                 if sender_id in buy_invest:
                     buy_invest.remove(sender_id)
-                promo = grab_data_two.hold_promo(saved_username[sender_id])
-                stand = grab_data_two.hold_stand(saved_username[sender_id])
+                promo = grab_data_two.hold_promo(saved_username[sender_id], cur)
+                stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
                 total = int(promo) + int(stand)
                 bot.edit_message_two(group_id, message_id, f'👤 *My Investment Portfolio \\- {saved_username[sender_id]}*', [[{'text':f'My Portfolio: {investment_num(total)} bits', 'callback_data':'None'}], 
                                                                                                             [{'text':'My Investments', 'callback_data':'My Investment'}],
@@ -429,14 +443,17 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Investment History' and sender_id in logged_in:
-                if grab_data_two.trans_det(saved_username[sender_id]) == 'Nothing':
+                if grab_data_two.trans_det(saved_username[sender_id], cur) == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
                     full_text = ''
                     serial = 1
-                    data = grab_data_two.trans_det(saved_username[sender_id])
+                    data = grab_data_two.trans_det(saved_username[sender_id], cur)
                     for i in range(len(data)):
+                        if len(full_text) > 4000:
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
                         h = data[i]
                         tim = h[1].replace('-', '\\-')
                         full_text += f'{serial}\\. Type: {h[0]} Time: {tim} Product: {h[2]} Value: {h[3]}\n'
@@ -445,7 +462,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Earnings' and sender_id in logged_in:
-                data = grab_data_two.payout_details(saved_username[sender_id])
+                data = grab_data_two.payout_details(saved_username[sender_id], cur)
                 if data == 'Nothing':
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
@@ -454,23 +471,23 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     serial = 1
                     for i in range(len(data)):
                         if len(full_text) > 4000:
-                            pass
-                        else:
-                            h = data[i]
-                            amount = h[1]
-                            amount = investment_num(amount)
-                            amount = amount.replace('.','\\.')
-                            full_text += f'{serial}\\. Product: {h[0]} \\| Amount: {amount} bits\n\n'
-                            serial += 1
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
+                        h = data[i]
+                        amount = h[1]
+                        amount = investment_num(amount)
+                        amount = amount.replace('.','\\.')
+                        full_text += f'{serial}\\. Product: {h[0]} \\| Amount: {amount} bits\n\n'
+                        serial += 1
                     bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'My Investment' and sender_id in logged_in:
-                if grab_data_two.holding_holding(saved_username[sender_id]) == 'Nothing' or grab_data_two.holding_holding(saved_username[sender_id]) == None:
+                if grab_data_two.holding_holding(saved_username[sender_id], cur) == 'Nothing' or grab_data_two.holding_holding(saved_username[sender_id], cur) == None:
                     bot.edit_message_two(group_id, message_id, 'Nothing to show here', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
-                    holding = grab_data_two.holding_holding(saved_username[sender_id]).split(' ')
+                    holding = grab_data_two.holding_holding(saved_username[sender_id], cur).split(' ')
                     holding_pro = []
                     holding_amount = []
                     a = 0
@@ -486,7 +503,10 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_text = ''
                     full_text += '*Your current holdings*\n\nProduct \\| Amount \\| Value\\(bits\\)\n'
                     for i in range(len(holding_amount)):
-                        cost = grab_data_two.inve_price(holding_pro[b])
+                        if len(full_text) > 4000:
+                            bot.send_message(sender_id,full_text)
+                            full_text = ''
+                        cost = grab_data_two.inve_price(holding_pro[b], cur)
                         full_text += f'{holding_pro[b]}      {holding_amount[b]}    {int(cost)*int(holding_amount[b])}\n'
                         total += int(cost)*int(holding_amount[b])
                         b += 1
@@ -500,7 +520,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Buy Investment' and sender_id in logged_in:
-                products = grab_data_two.inve_cate_two()
+                products = grab_data_two.inve_cate_two(cur)
                 full_code = []
                 for a in products:
                     full_code.append({'text':f'{a}', 'callback_data':f'{a}'})
@@ -518,14 +538,14 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif callback_data == 'Sell An Investment' and sender_id in logged_in:
-                if grab_data_two.holding_holding(saved_username[sender_id]) == 'Nothing' or grab_data_two.holding_holding(saved_username[sender_id]) == None:
+                if grab_data_two.holding_holding(saved_username[sender_id], cur) == 'Nothing' or grab_data_two.holding_holding(saved_username[sender_id], cur) == None:
                     bot.edit_message_two(group_id, message_id, 'No investment available for selling', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
-                elif len(grab_data_two.holding_holding(saved_username[sender_id])) == 0:
+                elif len(grab_data_two.holding_holding(saved_username[sender_id], cur)) == 0:
                     bot.edit_message_two(group_id, message_id, 'No investment available for selling', [[{'text':'Back','callback_data':'Investment Account'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
-                    holding = grab_data_two.holding_holding(saved_username[sender_id]).split(' ')
+                    holding = grab_data_two.holding_holding(saved_username[sender_id], cur).split(' ')
                     holding_products = []
                     for i in range(len(holding)):
                         if holding[i].isnumeric() == False and len(holding[i]) > 0:
@@ -545,7 +565,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     if full_code[-1] in full_code[d:c]:
                         part.append(full_code[d:c])
                         part.append([{'text':'Back','callback_data':'Investment Account'}])
-                    holding = grab_data_two.holding_holding(saved_username[sender_id]).split(' ')
+                    holding = grab_data_two.holding_holding(saved_username[sender_id], cur).split(' ')
                     holding_pro = []
                     holding_amount = []
                     a = 0
@@ -561,7 +581,10 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_text = ''
                     full_text += '*Your current holdings*\n\nProduct \\| Amount \\| Value\\(bits\\)\n'
                     for i in range(len(holding_amount)):
-                        cost = grab_data_two.inve_price(holding_pro[b])
+                        if len(full_text) > 4000:
+                            bot.send_message(sender_id, full_text)
+                            full_text = ''
+                        cost = grab_data_two.inve_price(holding_pro[b], cur)
                         full_text += f'{holding_pro[b]}      {holding_amount[b]}    {int(cost)*int(holding_amount[b])}\n'
                         total += int(cost)*int(holding_amount[b])
                         b += 1
@@ -570,7 +593,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Confirm Investment' and sender_id in logged_in:
-                balance = float(grab_data_two.balance_balance(saved_username[sender_id]))
+                balance = float(grab_data_two.balance_balance(saved_username[sender_id], cur))
                 if balance < pro_price[sender_id]:
                     bot.edit_message_two(group_id, message_id, 'Not Enough Balance', [[{'text':'Back', 'callback_data':'Investment Account'}]])
                     if sender_id in pro_name:
@@ -578,15 +601,15 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                         del pro_price[sender_id]
                     bot.get_updates(offset = update_id+1)
                 elif balance >= pro_price[sender_id]:
-                    if grab_data_two.holding_user(saved_username[sender_id]) == 'No':
-                        data_input.investment_holding(saved_username[sender_id], 0,0, 'Nothing')
-                    update_data.balance_info(saved_username[sender_id], float(balance)-pro_price[sender_id])
+                    if grab_data_two.holding_user(saved_username[sender_id], cur) == 'No':
+                        data_input.investment_holding(saved_username[sender_id], 0,0, 'Nothing', cur)
+                    update_data.balance_info(saved_username[sender_id], float(balance)-pro_price[sender_id], cur)
                     d = pro_price[sender_id]
                     e = "{:,}".format(int(d))
-                    time_sold = int(grab_data_two.inve_sold(pro_name[sender_id]))
+                    time_sold = int(grab_data_two.inve_sold(pro_name[sender_id], cur))
                     time_sold += 1
-                    update_data.invement_sold(pro_name[sender_id], time_sold)
-                    holding = grab_data_two.holding_holding(saved_username[sender_id])
+                    update_data.invement_sold(pro_name[sender_id], time_sold, cur)
+                    holding = grab_data_two.holding_holding(saved_username[sender_id], cur)
                     if holding == None or holding == 'Nothing':
                         holding = []
                     else:
@@ -610,24 +633,25 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                                 full_text += f'{str(i)} '
                         full_text += f'{pro_name[sender_id]} {int(held) + 1}'
                         if pro_name[sender_id].startswith('P') and sender_id not in update_success:
-                            promo = int(grab_data_two.hold_promo(saved_username[sender_id]))
-                            update_data.invest_promo(saved_username[sender_id], int(d)+promo, full_text)
+                            promo = int(grab_data_two.hold_promo(saved_username[sender_id], cur))
+                            update_data.invest_promo(saved_username[sender_id], int(d)+promo, full_text, cur)
                             update_success.append(sender_id)
-                            bonus_given = grab_data_two.amba_bonus(saved_username[sender_id])
+                            bonus_given = grab_data_two.amba_bonus(saved_username[sender_id], cur)
                             if bonus_given == 'False':
-                                bonus_to_give = grab_data_two.inve_bonus(pro_name[sender_id])
-                                refer_used = grab_data_two.amba_used(saved_username[sender_id])
-                                refer_username = grab_data_two.amba_username(refer_used)
-                                refer_balance = grab_data_two.inve_bala(refer_username)
-                                refer_amba = grab_data_two.balance_amba(refer_username)
-                                update_data.balance_info(refer_username, refer_balance+bonus_to_give)
-                                update_data.balance_amba(refer_username, bonus_to_give+refer_amba)
-                                update_data.bonus_given(saved_username[sender_id])
-                                data_input.ambassador_transactions(refer_username, 'Referral', bonus_to_give, f'Referral Bonus from {saved_username[sender_id]}')
+                                bonus_to_give = grab_data_two.inve_bonus(pro_name[sender_id], cur)
+                                refer_used = grab_data_two.amba_used(saved_username[sender_id], cur)
+                                refer_username = grab_data_two.amba_username(refer_used, cur)
+                                refer_balance = grab_data_two.inve_bala(refer_username, cur)
+                                refer_amba = grab_data_two.balance_amba(refer_username, cur)
+                                update_data.balance_info(refer_username, refer_balance+bonus_to_give, cur)
+                                update_data.balance_amba(refer_username, bonus_to_give+refer_amba, cur)
+                                update_data.bonus_given(saved_username[sender_id], cur)
+                                serial = grab_data_two.amba_serial(cur)
+                                data_input.ambassador_transactions(refer_username, 'Referral', bonus_to_give, f'Referral Bonus from {saved_username[sender_id]}', serial, cur)
                         else:
                             d = pro_price[sender_id]
-                            stand = int(grab_data_two.hold_stand(saved_username[sender_id]))
-                            update_data.invest_stand(saved_username[sender_id], int(d)+stand, full_text)
+                            stand = int(grab_data_two.hold_stand(saved_username[sender_id], cur))
+                            update_data.invest_stand(saved_username[sender_id], int(d)+stand, full_text, cur)
                             update_success.append(sender_id)
 
                     elif pro_name[sender_id] not in holding and sender_id not in update_success:
@@ -639,76 +663,88 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                                 full_text += f'{str(i)} '
                         full_text += f'{pro_name[sender_id]} 1'
                         if pro_name[sender_id].startswith('P'):
-                            promo = int(grab_data_two.hold_promo(saved_username[sender_id]))
-                            update_data.invest_promo(saved_username[sender_id], int(d)+promo, full_text)
+                            promo = int(grab_data_two.hold_promo(saved_username[sender_id], cur))
+                            update_data.invest_promo(saved_username[sender_id], int(d)+promo, full_text, cur)
                         else:
-                            promo = int(grab_data_two.hold_stand(saved_username[sender_id]))
-                            update_data.invest_stand(saved_username[sender_id], int(d)+promo, full_text)
-                        bonus_given = grab_data_two.amba_bonus(saved_username[sender_id])
+                            promo = int(grab_data_two.hold_stand(saved_username[sender_id], cur))
+                            update_data.invest_stand(saved_username[sender_id], int(d)+promo, full_text, cur)
+                        bonus_given = grab_data_two.amba_bonus(saved_username[sender_id], cur)
                         if bonus_given == 'False' and pro_name[sender_id].startswith('P'):
-                            bonus_to_give = grab_data_two.inve_bonus(pro_name[sender_id])
-                            refer_used = grab_data_two.amba_used(saved_username[sender_id])
-                            refer_username = grab_data_two.amba_username(refer_used)
-                            refer_balance = grab_data_two.inve_bala(refer_username)
-                            refer_amba = grab_data_two.balance_amba(refer_username)
-                            update_data.balance_info(refer_username, refer_balance+bonus_to_give)
-                            update_data.balance_amba(refer_username, bonus_to_give+refer_amba)
-                            update_data.bonus_given(saved_username[sender_id])
-                            data_input.ambassador_transactions(refer_username, 'Referral', bonus_to_give, f'Referral Bonus from {saved_username[sender_id]}')
+                            bonus_to_give = grab_data_two.inve_bonus(pro_name[sender_id], cur)
+                            refer_used = grab_data_two.amba_used(saved_username[sender_id], cur)
+                            refer_username = grab_data_two.amba_username(refer_used, cur)
+                            refer_balance = grab_data_two.inve_bala(refer_username, cur)
+                            refer_amba = grab_data_two.balance_amba(refer_username, cur)
+                            update_data.balance_info(refer_username, refer_balance+bonus_to_give, cur)
+                            update_data.balance_amba(refer_username, bonus_to_give+refer_amba, cur)
+                            update_data.bonus_given(saved_username[sender_id], cur)
+                            serial = grab_data_two.amba_serial(cur)
+                            print('here')
+                            data_input.ambassador_transactions(refer_username, 'Referral', bonus_to_give, f'Referral Bonus from {saved_username[sender_id]}', serial, cur)
                         update_success.append(sender_id)
-                    enroll = grab_data_two.holding_enrolled(saved_username[sender_id])
+                    enroll = grab_data_two.holding_enrolled(saved_username[sender_id], cur)
                     if enroll == 'False':
-                        update_data.enrolled(saved_username[sender_id])
-                    tree_tracking.qualified_mile(saved_username[sender_id])
-                    tree_tracking.qualified_resi(saved_username[sender_id])
-                    amba_used = grab_data_two.amba_used(saved_username[sender_id])
-                    amba_username = grab_data_two.amba_username(amba_used)
-                    qualified = int(grab_data_two.qualified_mile(amba_username))
-                    tree_inve = int(grab_data_two.amba_tree(amba_username))
-                    tree_bala = int(grab_data_two.inve_bala(amba_username))
-                    tree_amba = int(grab_data_two.balance_amba(amba_username))
-                    tree_tier = grab_data_two.milestone_tier(amba_username)
-                    promo = int(grab_data_two.hold_promo(amba_username))
-                    stand = int(grab_data_two.hold_stand(amba_username))
+                        update_data.enrolled(saved_username[sender_id], cur)
+                    tree_tracking.qualified_mile(saved_username[sender_id], cur)
+                    tree_tracking.qualified_resi(saved_username[sender_id], cur)
+                    amba_used = grab_data_two.amba_used(saved_username[sender_id], cur)
+                    amba_username = grab_data_two.amba_username(amba_used, cur)
+                    qualified = int(grab_data_two.qualified_mile(amba_username, cur))
+                    tree_inve = int(grab_data_two.amba_tree(amba_username, cur))
+                    tree_bala = int(grab_data_two.inve_bala(amba_username, cur))
+                    tree_amba = int(grab_data_two.balance_amba(amba_username, cur))
+                    tree_tier = grab_data_two.milestone_tier(amba_username, cur)
+                    promo = int(grab_data_two.hold_promo(amba_username, cur))
+                    stand = int(grab_data_two.hold_stand(amba_username, cur))
                     total = tree_inve + promo + stand
                     if total >= 1000000 and tree_tier[0] == 'False' and qualified >= 2:
-                        update_data.balance_info(amba_username, tree_bala+200000)
-                        update_data.balance_amba(amba_username, tree_amba+200000)
+                        update_data.balance_info(amba_username, tree_bala+200000, cur)
+                        update_data.balance_amba(amba_username, tree_amba+200000, cur)
                         total += 200000
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 1 BTC')
-                        update_data.tier(amba_username, 'Tier_1')
+                        serial = grab_data_two.amba_serial(cur)
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 1 BTC', serial, cur)
+                        update_data.tier(amba_username, 'Tier_1', cur)
                     if total >= 2000000 and tree_tier[1] == 'False' and qualified >= 2:
-                        update_data.balance_info(amba_username, tree_bala+200000)
-                        update_data.balance_amba(amba_username, tree_amba+200000)
+                        update_data.balance_info(amba_username, tree_bala+200000, cur)
+                        update_data.balance_amba(amba_username, tree_amba+200000, cur)
                         total += 200000
-                        update_data.tier(amba_username, 'Tier_2')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 2 BTC')
+                        update_data.tier(amba_username, 'Tier_2', cur)
+                        serial = grab_data_two.amba_serial(cur)
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 2 BTC', serial, cur)
                     if total >= 5000000 and tree_tier[2] == 'False' and qualified >= 2:
-                        update_data.balance_info(amba_username, tree_bala+200000)
-                        update_data.balance_amba(amba_username, tree_amba+200000)
+                        update_data.balance_info(amba_username, tree_bala+200000, cur)
+                        update_data.balance_amba(amba_username, tree_amba+200000, cur)
                         total += 200000
-                        update_data.tier(amba_username, 'Tier_3')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 5 BTC')
+                        update_data.tier(amba_username, 'Tier_3', cur)
+                        serial = grab_data_two.amba_serial(cur)
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 200000, f'Milestone 5 BTC', serial, cur)
                     if total >= 10000000 and tree_tier[3] == 'False' and qualified >= 2:
-                        update_data.balance_info(amba_username, tree_bala+400000)
-                        update_data.balance_amba(amba_username, tree_amba+400000)
+                        update_data.balance_info(amba_username, tree_bala+400000, cur)
+                        update_data.balance_amba(amba_username, tree_amba+400000, cur)
                         total += 400000
-                        update_data.tier(amba_username, 'Tier_4')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 400000, f'Milestone 10 BTC')
+                        update_data.tier(amba_username, 'Tier_4', cur)
+                        serial = grab_data_two.amba_serial(cur)
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 400000, f'Milestone 10 BTC', serial, cur)
                     if total >= 50000000 and tree_tier[4] == 'False' and qualified >= 2:
-                        update_data.balance_info(amba_username, tree_bala+2000000)
-                        update_data.balance_amba(amba_username, tree_amba+2000000)
+                        update_data.balance_info(amba_username, tree_bala+2000000, cur)
+                        update_data.balance_amba(amba_username, tree_amba+2000000, cur)
                         total += 2000000
-                        update_data.tier(amba_username, 'Tier_5')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 2000000, f'Milestone 50 BTC')
+                        update_data.tier(amba_username, 'Tier_5', cur)
+                        serial = grab_data_two.amba_serial(cur)
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 2000000, f'Milestone 50 BTC', serial, cur)
                     if total >= 100000000 and tree_tier[5] == 'False' and qualified >= 2:
-                        update_data.balance_info(amba_username, tree_bala+5000000)
-                        update_data.balance_amba(amba_username, tree_amba+5000000)
-                        update_data.tier(amba_username, 'Tier_6')
-                        data_input.ambassador_transactions(amba_username, 'Milestone', 5000000, f'Milestone 100 BTC')
+                        update_data.balance_info(amba_username, tree_bala+5000000, cur)
+                        update_data.balance_amba(amba_username, tree_amba+5000000, cur)
+                        update_data.tier(amba_username, 'Tier_6', cur)
+                        serial = grab_data_two.amba_serial(cur)
+                        data_input.ambassador_transactions(amba_username, 'Milestone', 5000000, f'Milestone 100 BTC', serial, cur)
 
                     date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
-                    data_input.investment_transactions(saved_username[sender_id], date, 'Buy', pro_name[sender_id], d)
+                    serial = grab_data_two.invest_serial(cur)
+                    print('here')
+                    print(pro_name[sender_id])
+                    print(serial)
+                    data_input.investment_transactions(saved_username[sender_id], date, 'Buy', pro_name[sender_id], d, serial, cur)
                     bot.edit_message_two(group_id, message_id, f'Successfully Purchased 1 x *{pro_name[sender_id]}* for *{e}* bits', [[{'text':'Back', 'callback_data':'Investment Account'}]])
                     if sender_id in pro_name:
                         del pro_name[sender_id]
@@ -722,8 +758,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.edit_message_two(group_id, message_id, 'Transaction Cancelled', [[{'text':'Back', 'callback_data':'Investment Account'}]])
                 bot.get_updates(offset = update_id+1)
             
-            elif callback_data in grab_data_two.inve_type(callback_data) and sender_id in logged_in:
-                products = grab_data_two.inve_name(callback_data)
+            elif callback_data in grab_data_two.inve_type(callback_data, cur) and sender_id in logged_in:
+                products = grab_data_two.inve_name(callback_data, cur)
                 full_code = []
                 for a in products:
                     if len(a) == 0:
@@ -740,30 +776,30 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 if full_code[-1] in full_code[d:c]:
                     part.append(full_code[d:c])
                     part.append([{'text':'Back','callback_data':'Investment Account'}])
-                bot.edit_message_two(group_id, message_id, f'{grab_data_two.descri_pro(callback_data)}\n\n*Choose Product*', part)
+                bot.edit_message_two(group_id, message_id, f'{grab_data_two.descri_pro(callback_data, cur)}\n\n*Choose Product*', part)
                 buy_invest.append(sender_id)
                 bot.get_updates(offset = update_id+1)
 
-            elif callback_data == grab_data_two.inve_name_two(callback_data) and sender_id in logged_in and sender_id in buy_invest:
-                d = grab_data_two.inve_price(callback_data)
+            elif callback_data == grab_data_two.inve_name_two(callback_data, cur) and sender_id in logged_in and sender_id in buy_invest:
+                d = grab_data_two.inve_price(callback_data, cur)
                 e = "{:,}".format(int(d))
-                bot.edit_message_two(group_id, message_id, f'Are you sure you want to Buy 1 x *{callback_data}* with *{e}* bits?', [[{'text':'Confirm','callback_data':'Confirm Investment'}, {'text':'Cancel', 'callback_data':'Cancel Investment'}]])
+                bot.edit_message_two(group_id, message_id, f'Are you sure you want to Buy 1 x *{callback_data}* with *{e}* bits?\n\n*Confirm Button May Take Upto 30 Seconds to Process*', [[{'text':'Confirm','callback_data':'Confirm Investment'}, {'text':'Cancel', 'callback_data':'Cancel Investment'}]])
                 pro_name[sender_id] = callback_data
-                pro_price[sender_id] = int(grab_data_two.inve_price(callback_data))
+                pro_price[sender_id] = int(grab_data_two.inve_price(callback_data, cur))
                 bot.get_updates(offset = update_id+1)
             
-            elif callback_data == grab_data_two.inve_name_two(callback_data) and sender_id in logged_in and sender_id in sell_invest:
-                d = grab_data_two.inve_price(callback_data)
+            elif callback_data == grab_data_two.inve_name_two(callback_data, cur) and sender_id in logged_in and sender_id in sell_invest:
+                d = grab_data_two.inve_price(callback_data, cur)
                 e = "{:,}".format(int(d))
                 bot.edit_message_two(group_id, message_id, f'Are you sure you want to Sell 1 x *{callback_data}* and get *{e}* bits?', [[{'text':'Confirm','callback_data':'Sell Investment'}, {'text':'Cancel', 'callback_data':'Cancel Investment'}]])
                 pro_name[sender_id] = callback_data
-                pro_price[sender_id] = int(grab_data_two.inve_price(callback_data))
+                pro_price[sender_id] = int(grab_data_two.inve_price(callback_data, cur))
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Sell Investment' and sender_id in logged_in:
-                balance = float(grab_data_two.balance_balance(saved_username[sender_id]))
-                update_data.balance_info(saved_username[sender_id], float(balance)+pro_price[sender_id]-1000)
-                holding = grab_data_two.holding_holding(saved_username[sender_id]).split(' ')
+                balance = float(grab_data_two.balance_balance(saved_username[sender_id], cur))
+                update_data.balance_info(saved_username[sender_id], float(balance)+pro_price[sender_id]-1000, cur)
+                holding = grab_data_two.holding_holding(saved_username[sender_id], cur).split(' ')
                 a = 0
                 while holding[a] != pro_name[sender_id]:
                     a += 1
@@ -780,16 +816,17 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     else:
                         full_text += f'{str(i)} '
                 if pro_name[sender_id].startswith('P'):
-                    promo = int(grab_data_two.hold_promo(saved_username[sender_id]))
+                    promo = int(grab_data_two.hold_promo(saved_username[sender_id], cur))
                     d = pro_price[sender_id]
-                    update_data.invest_promo(saved_username[sender_id], promo-int(d), full_text)
+                    update_data.invest_promo(saved_username[sender_id], promo-int(d), full_text, cur)
                 else:
-                    stand = int(grab_data_two.hold_stand(saved_username[sender_id]))
+                    stand = int(grab_data_two.hold_stand(saved_username[sender_id], cur))
                     d = pro_price[sender_id]
                     bal = stand-int(d)
-                    update_data.invest_stand(saved_username[sender_id], bal, full_text)
+                    update_data.invest_stand(saved_username[sender_id], bal, full_text, cur)
                 date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
-                data_input.investment_transactions(saved_username[sender_id], date, 'Sell', pro_name[sender_id], pro_price[sender_id])
+                serial = grab_data_two.invest_serial(cur)
+                data_input.investment_transactions(saved_username[sender_id], date, 'Sell', pro_name[sender_id], pro_price[sender_id], serial, cur)
                 bot.edit_message_two(group_id, message_id, f'Successfully Sold 1 x {pro_name[sender_id]}', [[{'text':'Back', 'callback_data':'Investment Account'}]])
                 if sender_id in pro_name:
                     del pro_name[sender_id]
@@ -800,8 +837,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     sell_invest.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
 
-            elif callback_data in grab_data_two.inve_cate_two() and sender_id in logged_in:
-                products = grab_data_two.inve_cate(callback_data)
+            elif callback_data in grab_data_two.inve_cate_two(cur) and sender_id in logged_in:
+                products = grab_data_two.inve_cate(callback_data, cur)
                 full_code = []
                 for a in products:
                     full_code.append({'text':f'{a}', 'callback_data':f'{a}'})
@@ -868,7 +905,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             text = current_updates['message']['text']
             print(text)
             if text == '/help':
-                bot.send_message(sender_id, grab_data_two.help_text())
+                bot.send_message(sender_id, grab_data_two.help_text(cur))
                 bot.send_message(sender_id, 'Type /start to get back to the main menu')
                 bot.get_updates(offset = update_id+1)
 
@@ -919,9 +956,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     buy_invest.remove(sender_id)
                 if sender_id in sumamry_pass:
                     sumamry_pass.remove(sender_id)
-                promo = grab_data_two.hold_promo(saved_username[sender_id])
-                stand = grab_data_two.hold_stand(saved_username[sender_id])
-                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id]))
+                promo = grab_data_two.hold_promo(saved_username[sender_id], cur)
+                stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
+                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id], cur))
                 total = int(promo) + int(stand) + int(tol_bal)
                 bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
@@ -931,11 +968,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             
-            if sender_id in loggin_in and grab_data_two.user_username(text)[0] == 'Nothing':
+            if sender_id in loggin_in and grab_data_two.user_username(text, cur)[0] == 'Nothing':
                 bot.send_message(sender_id, 'Please provide a valid *Username*')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in loggin_in and text in grab_data_two.user_username(text)[0]:
+            elif sender_id in loggin_in and text in grab_data_two.user_username(text, cur)[0]:
                 saved_username[sender_id] = text
                 bot.send_message(sender_id, 'Please enter your *Password*')
                 loggin_in.remove(sender_id)
@@ -943,21 +980,21 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     password_in.append(sender_id)
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in password_in and text != grab_data_two.user_password(saved_username[sender_id]):
+            elif sender_id in password_in and text != grab_data_two.user_password(saved_username[sender_id], cur):
                 bot.send_message(sender_id, 'Incorrect password, please try again')
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in password_in and text == grab_data_two.user_password(saved_username[sender_id]):
+            elif sender_id in password_in and text == grab_data_two.user_password(saved_username[sender_id], cur):
                 bot.delete_message(sender_id, message_id)
                 bot.send_message(sender_id, 'Welcome Back\\!')
                 password_in.remove(sender_id)
                 if sender_id not in logged_in:
                     logged_in.append(sender_id)
-                if grab_data_two.holding_user(saved_username[sender_id]) == 'No':
-                    data_input.investment_holding(saved_username[sender_id], 0,0, 'Nothing')
-                promo = grab_data_two.hold_promo(saved_username[sender_id])
-                stand = grab_data_two.hold_stand(saved_username[sender_id])
-                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id]))
+                if grab_data_two.holding_user(saved_username[sender_id], cur) == 'No':
+                    data_input.investment_holding(saved_username[sender_id], 0,0, 'Nothing', cur)
+                promo = grab_data_two.hold_promo(saved_username[sender_id], cur)
+                stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
+                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id], cur))
                 total = int(promo) + int(stand) + int(tol_bal)
                 bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
@@ -967,7 +1004,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             
-            if sender_id in registering and text in grab_data_two.user_amba(text)[0]:
+            if sender_id in registering and text in grab_data_two.user_amba(text, cur)[0]:
                 bot.send_message(sender_id, 'Please enter a username of your choice\n3\\-10 Alphanumeric, case sensitive')
                 registering.remove(sender_id)
                 if sender_id not in user_regis:
@@ -975,24 +1012,24 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 temp_acc[sender_id] = text
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in registering and grab_data_two.user_amba(text)[0] == 'Nothing':
+            elif sender_id in registering and grab_data_two.user_amba(text, cur)[0] == 'Nothing':
                 bot.send_message(sender_id, 'Sorry, the access code is invalid\\.\nFor assistance, please contact our [Support Team](https://t.me/BitBotTeam)', disable_web_page_preview=True)
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text)[0] == 'Nothing' and len(text) > 2 and len(text) < 11 and '-' in text:
+            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text, cur)[0] == 'Nothing' and len(text) > 2 and len(text) < 11 and '-' in text:
                 bot.send_message(sender_id, 'Username Invalid\\. Please type a new one')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text)[0] == 'Nothing' and len(text) > 2 and len(text) < 11 and '_' in text:
+            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text, cur)[0] == 'Nothing' and len(text) > 2 and len(text) < 11 and '_' in text:
                 bot.send_message(sender_id, 'Username Invalid\\. Please type a new one')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text)[0] == 'Nothing' and len(text) > 2 and len(text) < 11:
+            elif sender_id in user_regis and len(text) > 2 and grab_data_two.user_username(text, cur)[0] == 'Nothing' and len(text) > 2 and len(text) < 11:
                 register_id[sender_id] = message_id+1
                 code = generate_pass()
                 passw = code[0]
                 amba_code = code[1]
-                while passw in grab_data_two.all_pass() or amba_code in grab_data_two.all_amba():
+                while passw in grab_data_two.all_pass(cur) or amba_code in grab_data_two.all_amba(cur):
                     code = generate_pass()
                     passw = code[0]
                     amba_code = code[1]
@@ -1007,7 +1044,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.send_message(sender_id, 'Copy and submit your password to confirm you have saved your credentials')
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in user_regis and len(text) > 2 and text in grab_data_two.user_username(text)[0]:
+            elif sender_id in user_regis and len(text) > 2 and text in grab_data_two.user_username(text, cur)[0]:
                 bot.send_message(sender_id, 'Username already exist\\. Please type a new one')
                 bot.get_updates(offset = update_id+1)
 
@@ -1021,20 +1058,20 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     username = 'None'
                 first_name = current_updates['message']['from']['first_name']
                 date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
-                ref = grab_data_two.amba_users(temp_acc[sender_id])
+                ref = grab_data_two.amba_users(temp_acc[sender_id], cur)
                 refer_number = ref + 1
-                data_input.user_info(sender_id, first_name, saved_username[sender_id], temp_pass[sender_id], saved_amba[sender_id], temp_acc[sender_id], date, username)
-                data_input.balance_info(sender_id, first_name, saved_username[sender_id], 0, 0, 0)
-                data_input.amba_info(sender_id, first_name, saved_username[sender_id], saved_amba[sender_id], temp_acc[sender_id], 0)
-                update_data.amba_info(temp_acc[sender_id], refer_number)
-                manager = tree_tracking.up(saved_username[sender_id])
-                update_data.manager(saved_username[sender_id], manager)
-                if grab_data_two.holding_user(saved_username[sender_id]) == 'No':
-                    data_input.investment_holding(saved_username[sender_id], 0,0, 'Nothing')
-                data_input.milestone_bonus(saved_username[sender_id])
-                promo = grab_data_two.hold_promo(saved_username[sender_id])
-                stand = grab_data_two.hold_stand(saved_username[sender_id])
-                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id]))
+                data_input.user_info(sender_id, first_name, saved_username[sender_id], temp_pass[sender_id], saved_amba[sender_id], temp_acc[sender_id], date, username, cur)
+                data_input.balance_info(sender_id, first_name, saved_username[sender_id], 0, 0, 0, cur)
+                data_input.amba_info(sender_id, first_name, saved_username[sender_id], saved_amba[sender_id], temp_acc[sender_id], 0, cur)
+                update_data.amba_info(temp_acc[sender_id], refer_number, cur)
+                manager = tree_tracking.up(saved_username[sender_id], cur)
+                update_data.manager(saved_username[sender_id], manager, cur)
+                if grab_data_two.holding_user(saved_username[sender_id], cur) == 'No':
+                    data_input.investment_holding(saved_username[sender_id], 0,0, 'Nothing', cur)
+                data_input.milestone_bonus(saved_username[sender_id], cur)
+                promo = grab_data_two.hold_promo(saved_username[sender_id], cur)
+                stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
+                tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id], cur))
                 total = int(promo) + int(stand) + int(tol_bal)
                 bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
                                                                         [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
@@ -1053,24 +1090,24 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             if sender_id in sumamry_pass and sender_id in logged_in:
-                password = grab_data_two.user_password(saved_username[sender_id])
+                password = grab_data_two.user_password(saved_username[sender_id], cur)
                 if text != password:
                     bot.send_message_four(sender_id, 'Incorrect Password', [[{'text':'Back', 'callback_data': 'Back'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
                     bot.delete_message(sender_id, message_id)
-                    details = grab_data_two.user_user(saved_username[sender_id])
-                    promo = grab_data_two.hold_promo(saved_username[sender_id])
-                    stand = grab_data_two.hold_stand(saved_username[sender_id])
-                    dire = grab_data_two.ambaused_username(details[4])
+                    details = grab_data_two.user_user(saved_username[sender_id], cur)
+                    promo = grab_data_two.hold_promo(saved_username[sender_id], cur)
+                    stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
+                    dire = grab_data_two.ambaused_username(details[4], cur)
                     direct = []
                     for i in dire:
                         if i == 'Nothing':
                             pass
                         else:
                             direct.append(i[0])
-                    tree = len(tree_tracking.all_refer(details[4]))
-                    all_inve = tree_tracking.down(details[4])
+                    tree = len(tree_tracking.all_refer(details[4], cur))
+                    all_inve = tree_tracking.down(details[4], cur)
                     date_joined = details[6].replace('-','\\-')
                     bot.send_message_four(sender_id, f'Username: {saved_username[sender_id]}\nPassword: {text}\nAmbassador Code: {details[4]}\nAmbassador Code Used: {details[5]}\nDate Joined: {date_joined}\nCurrent Holding: {int(promo)+int(stand)} bits\nDirect Refer: {len(direct)}\nTotal Refer: {tree}\nTotal Invest: {int(all_inve)}', [[{'text':'Back', 'callback_data': 'Back'}]])
                     bot.get_updates(offset = update_id+1)
@@ -1093,9 +1130,10 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
                     bot.send_message_four(sender_id, f'Total Sent: {f} bits\\. Deposit is Successful', [[{'text':'Back', 'callback_data': 'Back'}]])
                     first_name = current_updates['message']['from']['first_name']
-                    e = grab_data_two.balance_balance(saved_username[sender_id])
-                    update_data.balance_info(saved_username[sender_id], c+e)
-                    data_input.deposits(sender_id, first_name, saved_username[sender_id], date, text, float(d), 'Success')
+                    e = grab_data_two.balance_balance(saved_username[sender_id], cur)
+                    update_data.balance_info(saved_username[sender_id], c+e, cur)
+                    serial = grab_data_two.depo_serial(cur)
+                    data_input.deposits(sender_id, first_name, saved_username[sender_id], date, text, float(d), 'Success', serial, cur)
                     bot.get_updates(offset = update_id+1)
                 else:
                     bot.send_message_four(sender_id, 'Transaction not sent to the deposit address\\. Deposit failed\\. If this was a mistake, contact us [here](https://t.me/BitBotTeam) as soon as possible', [[{'text':'Back', 'callback_data': 'Back'}]])
@@ -1107,7 +1145,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 if divide[1] != 'bits':
                     bot.send_message_four(sender_id, 'Wrong Format', [[{'text':'Back', 'callback_data': 'Back'}]])
                     bot.get_updates(offset = update_id+1)
-                elif float(amount) > grab_data_two.balance_balance(saved_username[sender_id]):
+                elif float(amount) > grab_data_two.balance_balance(saved_username[sender_id], cur):
                     bot.send_message_four(sender_id, 'You do not have enough balance', [[{'text':'Back', 'callback_data': 'Back'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
@@ -1118,17 +1156,17 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             if len(text) > 30 and sender_id in logged_in and sender_id in withdraw:
                 first_name = current_updates['message']['from']['first_name']
                 bot.send_message_four(sender_id, 'Withdrawal address received\\. All Withdrawals are processed manually and are done within 24 hours', [[{'text':'Done', 'callback_data':'Back'}]])
-                a = grab_data_two.balance_balance(saved_username[sender_id]) - temp_with[sender_id]
-                update_data.balance_info(saved_username[sender_id], a)
+                a = grab_data_two.balance_balance(saved_username[sender_id], cur) - temp_with[sender_id]
+                update_data.balance_info(saved_username[sender_id], a, cur)
                 date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
-                serial = grab_data_two.withdraw_serial()
-                data_input.withdraws(sender_id, first_name, saved_username[sender_id], date, text, 'None', temp_with[sender_id], 'Pending', serial+1)
+                serial = grab_data_two.withdraw_serial(cur)
+                data_input.withdraws(sender_id, first_name, saved_username[sender_id], date, text, 'None', temp_with[sender_id], 'Pending', serial+1, cur)
                 withdraw.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
             
             if sender_id in report_bug and sender_id in logged_in and len(text) > 0:
                 date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
-                data_input.feedback(saved_username[sender_id], date, text)
+                data_input.feedback(saved_username[sender_id], date, text, cur)
                 bot.send_message_four(sender_id, 'Feedback Recorded\\. Thanks for using BitBot', [[{'text':'Done', 'callback_data':'More'}]])
                 report_bug.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
