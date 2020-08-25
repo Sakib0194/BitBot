@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import requests, json, random, string, time, datetime, mysql.connector
+
 import update_data, data_input, grab_data_two, delete_row, payout_demo, tree_tracking
 class BoilerPlate:
     def __init__(self, token):
