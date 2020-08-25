@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import grab_data_two
 
 def details(product, cur):
