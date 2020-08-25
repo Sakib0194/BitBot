@@ -1,4 +1,4 @@
-import requests, json, random, string, time, datetime
+import requests, json, random, string, time, datetime, mysql.connector
 import grab_data, update_data, data_input, grab_data_two, delete_row, payout_demo, tree_tracking
 class BoilerPlate:
     def __init__(self, token):
@@ -105,6 +105,9 @@ def investment_num(investment):
     return e
 
 
+conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
+cur = conn.cursor()
+
 token = '1233921119:AAEodGL5mX6NAd84dDjQrAhOt03JNcRDIio'
 offset = 0
 
@@ -122,8 +125,13 @@ id_number = {}
 bot = BoilerPlate(token)
 
 def starter():
-    global offset
+    global offset, cur, conn
     while True:
+        if conn.is_connected() == True:
+            pass
+        else:
+            conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
+            cur = conn.cursor()
         all_updates = bot.get_updates(offset)
         for current_updates in all_updates:
             #print(current_updates)
@@ -136,7 +144,7 @@ def starter():
                     group_id = current_updates['callback_query']['message']['chat']['id']
                     message_id = current_updates['callback_query']['message']['message_id']
                     callback_data = current_updates['callback_query']['data']
-                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0 , callback_data=callback_data, callback=True)
+                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0, cur, callback_data=callback_data, callback=True)
                 else:
                     group_id = current_updates['message']['chat']['id']
                     sender_id = current_updates['message']['from']['id']
@@ -145,20 +153,15 @@ def starter():
                     for keys in current_updates.get('message'):
                         dict_checker.append(keys)
                     if sender_id == group_id:
-                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker)
+                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur)
             except:
                 #print('Edited')
                 bot.get_updates(offset = update_id+1)
 
 
-def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, callback_data=0, callback=False):
+def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur, callback_data=0, callback=False):
     try:
         if callback == True:
-            if sender_id not in logged_in:
-                bot.send_message(sender_id, 'Please provide your *Username*')
-                if sender_id not in loggin_in:
-                    loggin_in.append(sender_id)
-                bot.get_updates(offset = update_id+1)
             print(callback_data)
 
             if callback_data == 'None':
@@ -177,13 +180,14 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 total_invest = 0
                 total_payout = 0
                 volume = 0
-                all_clients = tree_tracking.all_refer(id_number[sender_id])
+                amba = grab_data_two.ambato_username(id_number[sender_id], cur)
+                all_clients = tree_tracking.all_refer(amba, cur)
                 for i in all_clients:
-                    stand = grab_data_two.hold_stand(i)
-                    promo = grab_data_two.hold_promo(i)
-                    payout = grab_data_two.payout_value(i)
-                    amba = grab_data_two.balance_amba(i)
-                    inte = grab_data_two.balance_amba(i)
+                    stand = grab_data_two.hold_stand(i, cur)
+                    promo = grab_data_two.hold_promo(i, cur)
+                    payout = grab_data_two.payout_value(i, cur)
+                    amba = grab_data_two.balance_amba(i, cur)
+                    inte = grab_data_two.balance_inte(i, cur)
                     if promo == 'Nothing':
                         promo = 0
                     if stand == 'Nothing':
@@ -198,14 +202,15 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)    
 
             elif callback_data == 'Total Payouts' and sender_id in logged_in:
-                all_clients = tree_tracking.all_refer(id_number[sender_id])
+                amba = grab_data_two.ambato_username(id_number[sender_id], cur)
+                all_clients = tree_tracking.all_refer(amba, cur)
                 full_text = 'Username \\| Investment \\| Value'
                 total = 0
                 if len(full_text) > 4000:
                     bot.send_message(sender_id, full_text)
                 else:
                     for i in all_clients:
-                        payout_details = grab_data_two.payout_everything(i)
+                        payout_details = grab_data_two.payout_everything(i, cur)
                         if payout_details == 'Nothing':
                             pass
                         else:
@@ -220,8 +225,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             elif callback_data == 'Total Investment' and sender_id in logged_in:
-                all_pro = grab_data_two.pro_all()
-                all_clients = tree_tracking.all_refer(id_number[sender_id])
+                all_pro = grab_data_two.pro_all(cur)
+                amba = grab_data_two.ambato_username(id_number[sender_id], cur)
+                all_clients = tree_tracking.all_refer(amba, cur)
                 full_text = 'Username \\| Product \\| Amount \\| Value\n\n'
                 total = 0
                 if len(full_text) > 4000:
@@ -229,14 +235,14 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_text = ''
                 else:
                     for i in all_clients:
-                        holdings = grab_data_two.holding_holding(i)
+                        holdings = grab_data_two.holding_holding(i, cur)
                         if holdings == 'Nothing' or holdings == None or len(holdings) == 0:
                             pass
                         else:
                             holdings = holdings.split(' ')
                             for h in range(len(holdings)):
                                 if holdings[h] in all_pro:
-                                    cost = grab_data_two.inve_price(holdings[h])
+                                    cost = grab_data_two.inve_price(holdings[h], cur)
                                     full_text += f'{i}    {holdings[h]}    {holdings[h+1]}    {int(cost)*int(holdings[h+1])}\n'
                                     total += int(int(cost)*int(holdings[h+1]))
                 total = investment_num(total)
@@ -251,14 +257,14 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'My Clients' and sender_id in logged_in:
-                all_clients = tree_tracking.all_refer(id_number[sender_id])
+                amba = grab_data_two.ambato_username(id_number[sender_id], cur)
+                all_clients = tree_tracking.all_refer(amba, cur)
                 full_text = '*My Clients*\n\n'
                 for i in all_clients:
                     if len(full_text) > 4000:
                         bot.send_message(sender_id, full_text)
                         full_text = ''
-                    else:
-                        full_text += f'Username: {i}\n'
+                    full_text += f'Username: {i}\n'
                 full_text += 'Send Username \\+ client to get more details\n\nExample\nAsdf client\nDummy client'
                 bot.edit_message_two(group_id, message_id, full_text, [[{'text':'Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
@@ -266,33 +272,26 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             if callback_data == 'Log Out' and sender_id in logged_in:
                 logged_in.remove(sender_id)
                 del id_number[sender_id]
-                bot.send_message(sender_id, 'Please provide your *ID*')
+                bot.send_message(sender_id, 'Please provide your *Username*')
                 asking_id.append(sender_id)
                 bot.get_updates(offset = update_id+1)
 
         else:
             text = current_updates['message']['text']
             print(text)
-            
-            if sender_id not in logged_in:
-                if sender_id not in loggin_in and sender_id not in password_in:
-                    bot.send_message(sender_id, 'Please provide your *ID*')
-                    if sender_id not in loggin_in:
-                        loggin_in.append(sender_id)
-                    bot.get_updates(offset = update_id+1)
 
-            if sender_id in logged_in and sender_id in summary_pass and text != grab_data_two.user_password(id_number[sender_id]):
+            if sender_id in logged_in and sender_id in summary_pass and text != grab_data_two.user_password(id_number[sender_id], cur):
                 bot.send_message_four(sender_id, 'Incorrect *password*, please try again', [[{'text':'Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in logged_in and sender_id in summary_pass and text == grab_data_two.user_password(id_number[sender_id]):
-                all_clients = tree_tracking.all_refer(id_number[sender_id])
-                amba = grab_data_two.ambato_username(id_number[sender_id])
+            elif sender_id in logged_in and sender_id in summary_pass and text == grab_data_two.user_password(id_number[sender_id], cur):
+                amba = grab_data_two.ambato_username(id_number[sender_id], cur)
+                all_clients = tree_tracking.all_refer(amba, cur)
                 bot.delete_message(sender_id, message_id)
                 total_invest = 0
                 for i in all_clients:
-                    stand = grab_data_two.hold_stand(i)
-                    promo = grab_data_two.hold_promo(i)
+                    stand = grab_data_two.hold_stand(i, cur)
+                    promo = grab_data_two.hold_promo(i, cur)
                     if promo == 'Nothing':
                         promo = 0
                     if stand == 'Nothing':
@@ -303,7 +302,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             if text == '/start' and sender_id not in logged_in:
                 bot.send_message(sender_id, 'Please provide your *Username*')
-                loggin_in.append(sender_id)
+                if sender_id not in loggin_in:
+                    loggin_in.append(sender_id)
                 bot.get_updates(offset = update_id+1)
             
             elif text == '/start' and sender_id in logged_in:
@@ -314,15 +314,15 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                                                                                         [{'text':'Log Out', 'callback_data':'Log Out'}]])
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in loggin_in and grab_data_two.user_username(text)[0] == 'Nothing':
+            elif sender_id in loggin_in and grab_data_two.user_username(text, cur)[0] == 'Nothing':
                 bot.send_message(sender_id, 'Please provide a valid *Username*')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in loggin_in and text in grab_data_two.user_username(text)[0] and grab_data_two.manager_access(text) == 'NO':
+            elif sender_id in loggin_in and text in grab_data_two.user_username(text, cur)[0] and grab_data_two.manager_access(text, cur) == 'NO':
                 bot.send_message(sender_id, 'You do not have the access')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in loggin_in and text in grab_data_two.user_username(text)[0] and grab_data_two.manager_access(text) == 'YES':
+            elif sender_id in loggin_in and text in grab_data_two.user_username(text, cur)[0] and grab_data_two.manager_access(text, cur) == 'YES':
                 id_number[sender_id] = text
                 bot.send_message(sender_id, 'Please enter your *Password*')
                 loggin_in.remove(sender_id)
@@ -330,11 +330,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     password_in.append(sender_id)
                 bot.get_updates(offset = update_id+1)
             
-            elif sender_id in password_in and text != grab_data_two.user_password(id_number[sender_id]):
+            elif sender_id in password_in and text != grab_data_two.user_password(id_number[sender_id], cur):
                 bot.send_message(sender_id, 'Incorrect password, please try again')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in password_in and sender_id not in summary_pass and text == grab_data_two.user_password(id_number[sender_id]) and grab_data_two.manager_access(id_number[sender_id]) == 'YES':
+            elif sender_id in password_in and sender_id not in summary_pass and text == grab_data_two.user_password(id_number[sender_id], cur) and grab_data_two.manager_access(id_number[sender_id], cur) == 'YES':
                 bot.send_message(sender_id, 'Access Granted')
                 bot.delete_message(sender_id, message_id)
                 logged_in.append(sender_id)
@@ -346,18 +346,18 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             if 'client' in text and len(text.split(' ')) == 2 and sender_id in logged_in:
                 details = text.split(' ')
-                all_clients = tree_tracking.all_refer(id_number[sender_id])
+                amba = grab_data_two.ambato_username(id_number[sender_id], cur)
+                all_clients = tree_tracking.all_refer(amba, cur)
                 if details[0] == 'client':
                     pass
                 elif details[0] in all_clients:
-                    data = grab_data_two.user_user(details[0])
-                    promo = grab_data_two.hold_promo(details[0])
-                    stand = grab_data_two.hold_stand(details[0])
-                    down = tree_tracking.down(details[0])
+                    data = grab_data_two.user_user(details[0], cur)
+                    promo = grab_data_two.hold_promo(details[0], cur)
+                    stand = grab_data_two.hold_stand(details[0], cur)
+                    down = tree_tracking.down(details[0], cur)
                     date = data[6].replace('-', '\\-')
                     bot.send_message_four(sender_id, f'Username: {data[2]}\nDate of Registration: {date}\nAmbassador Code: {data[4]}\nDown Volume: {int(down)}\nHoldings: {int(promo)+int(stand)}', [[{'text':'Back','callback_data':'Back'}]])
                     bot.get_updates(offset = update_id+1)
-
     except Exception as e:
         #print(current_updates)
         print(e)
