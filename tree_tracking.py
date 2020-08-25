@@ -1,15 +1,17 @@
+#!/usr/bin/env python3
 import grab_data_two,update_data
+import mysql.connector
 all_data = {}
-def down(refer):
+def down(refer, cur):
     to_track = []
     investments = {}
-    refers = grab_data_two.ambaused_username(refer)
+    refers = grab_data_two.ambaused_username(refer, cur)
     for i in refers:
         to_track.append(i[0])
     a = 0
     while to_track != []:
-        c = grab_data_two.hold_stand(to_track[a])
-        b = grab_data_two.hold_promo(to_track[a])
+        c = grab_data_two.hold_stand(to_track[a], cur)
+        b = grab_data_two.hold_promo(to_track[a], cur)
         if c == 'Nothing':
             c = 0
         if b == 'Nothing':
@@ -22,9 +24,9 @@ def down(refer):
         investments[to_track[a]] = b + c
         #print(to_track)
         
-        amba = grab_data_two.ambato_username(to_track[a])
+        amba = grab_data_two.ambato_username(to_track[a], cur)
         #print(amba)
-        referrals = grab_data_two.ambaused_username(amba)
+        referrals = grab_data_two.ambaused_username(amba, cur)
         for i in referrals:
             if i == 'Nothing':
                 pass
@@ -50,74 +52,74 @@ for h in all_data:
     update_data.tree_investment(h, all_data[h])'''
 
 
-def up(username):
+def up(username, cur):
     manage = ''
     to_track = []
-    amba_code = grab_data_two.ambato_username(username)
+    amba_code = grab_data_two.ambato_username(username, cur)
     to_track.append(amba_code)
     if amba_code == 'MANAGER':
-        manage = grab_data_two.amba_username(amba_code)
+        manage = grab_data_two.amba_username(amba_code, cur)
         to_track.remove(to_track[0])
     else:
         while to_track != []:
-            a = grab_data_two.amba_amba(to_track[0])
+            a = grab_data_two.amba_amba(to_track[0], cur)
             if a == 'Nothing' or a == 'MANAGER' or a == '0GAN7KD' or a == 'LVXD4A8' or a == 'ADMIN':
                 to_track.remove(to_track[0])
                 if a == 'Nothing' or a == 'ADMIN':
                     pass
                 else:
-                    manage = grab_data_two.amba_username(a)
+                    manage = grab_data_two.amba_username(a, cur)
             else:
                 to_track[0] = a
     return manage
 
-def qualified_mile(username):
+def qualified_mile(username, cur):
     qualify = 0
-    amba_used = grab_data_two.amba_used(username)
+    amba_used = grab_data_two.amba_used(username, cur)
     if amba_used == 'ADMIN':
-        amba_username = 'Vito'
+        amba_username = 'vito'
     else:
-        amba_username = grab_data_two.amba_username(amba_used)
-        direct_ref = grab_data_two.ambaused_username(amba_used)
+        amba_username = grab_data_two.amba_username(amba_used, cur)
+        direct_ref = grab_data_two.ambaused_username(amba_used, cur)
         for i in direct_ref:
-            en = grab_data_two.holding_enrolled(i[0])
+            en = grab_data_two.holding_enrolled(i[0], cur)
             if en == 'True':
                 qualify += 1
             else:
                 pass
-    amount = down(amba_used)
-    update_data.tree_investment(amba_used, amount)
-    update_data.qualified_milestone(amba_username, qualify)
+    amount = down(amba_used, cur)
+    update_data.tree_investment(amba_used, amount, cur)
+    update_data.qualified_milestone(amba_username, qualify, cur)
 
 
-def qualified_resi(username):
-    amba_used = grab_data_two.amba_used(username)
+def qualified_resi(username, cur):
+    amba_used = grab_data_two.amba_used(username, cur)
     if amba_used == 'ADMIN':
-        amba_username = 'Vito'
+        amba_username = 'vito'
     else:
-        amba_username = grab_data_two.amba_username(amba_used)
+        amba_username = grab_data_two.amba_username(amba_used, cur)
     qualify = 0
-    direct_ref = grab_data_two.ambaused_username(amba_used)
+    direct_ref = grab_data_two.ambaused_username(amba_used, cur)
     for i in direct_ref:
-        en = grab_data_two.holding_enrolled(i[0])
+        en = grab_data_two.holding_enrolled(i[0], cur)
         if en == 'True':
-            promo = grab_data_two.hold_promo(i[0])
-            stand = grab_data_two.hold_stand(i[0])
+            promo = grab_data_two.hold_promo(i[0], cur)
+            stand = grab_data_two.hold_stand(i[0], cur)
             if promo+stand >= 1000000:
                 qualify += 1
             else:
                 pass
-    amount = down(amba_used)
-    update_data.tree_investment(amba_used, amount)
-    update_data.qualified_residual(amba_username, qualify)
+    amount = down(amba_used, cur)
+    update_data.tree_investment(amba_used, amount, cur)
+    update_data.qualified_residual(amba_username, qualify, cur)
 
 
-def resi_per(username):
-    amba_code = grab_data_two.ambato_username(username)
-    tree = float(down(amba_code))
-    promo = float(grab_data_two.hold_promo(username))
-    stand = float(grab_data_two.hold_stand(username))
-    resi_num = grab_data_two.quali_resi(username)[0][1] 
+def resi_per(username, cur):
+    amba_code = grab_data_two.ambato_username(username, cur)
+    tree = float(down(amba_code, cur))
+    promo = float(grab_data_two.hold_promo(username, cur))
+    stand = float(grab_data_two.hold_stand(username, cur))
+    resi_num = grab_data_two.quali_resi(username, cur)[0][1] 
     percentage = 0
     if tree+promo+stand >= 5000000 and resi_num >= 2:
         percentage = 2
@@ -127,8 +129,8 @@ def resi_per(username):
         percentage = 3
     if tree+promo+stand >= 100000000 and resi_num >= 2:
         percentage = 4
-    update_data.tree_percentage(username, percentage)
-    update_data.tree_investment(amba_code, tree)
+    update_data.tree_percentage(username, percentage, cur)
+    update_data.tree_investment(amba_code, tree, cur)
 
 '''all_users = grab_data_two.user_all()
 for i in all_users:
@@ -137,11 +139,11 @@ for i in all_users:
     qualified_resi(i[0])
     resi_per(i[0])'''
 
-def all_refer(refer):
+def all_refer(refer, cur):
     to_track = []
     all_username = []
     investments = {}
-    refers = grab_data_two.ambaused_username(refer)
+    refers = grab_data_two.ambaused_username(refer, cur)
     for i in refers:
         if i[0] == 'N':
             pass
@@ -150,8 +152,8 @@ def all_refer(refer):
         to_track.append(i[0])
     a = 0
     while to_track != []:
-        c = grab_data_two.hold_stand(to_track[a])
-        b = grab_data_two.hold_promo(to_track[a])
+        c = grab_data_two.hold_stand(to_track[a], cur)
+        b = grab_data_two.hold_promo(to_track[a], cur)
         if c == 'Nothing':
             c = 0
         if b == 'Nothing':
@@ -164,9 +166,9 @@ def all_refer(refer):
         investments[to_track[a]] = b + c
         #print(to_track)
         
-        amba = grab_data_two.ambato_username(to_track[a])
+        amba = grab_data_two.ambato_username(to_track[a], cur)
         #print(amba)
-        referrals = grab_data_two.ambaused_username(amba)
+        referrals = grab_data_two.ambaused_username(amba, cur)
         for i in referrals:
             if i == 'Nothing':
                 pass
@@ -187,3 +189,4 @@ def all_refer(refer):
         tot += investments[i]
     all_data[refer] = tot
     return all_username
+
