@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import grab_data_two,update_data
 import mysql.connector
 all_data = {}
