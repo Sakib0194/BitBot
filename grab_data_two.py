@@ -1,4 +1,4 @@
-import mysql.connector
+#!/usr/bin/env python3
 def user_username(username, cur):
     cur.execute(f"SELECT Username FROM user_info WHERE Username = '{username}'")
     rows = cur.fetchall()
@@ -459,6 +459,18 @@ def descri_pending(cur):
             unique_list.append(i[0])
         return unique_list
 
+def descri_false(cur):
+    cur.execute("SELECT Investment_Type FROM investment_description WHERE Payout_Pending = 'False'")
+    rows = cur.fetchall()
+    if rows == []:
+        rows = 'Nothing'
+        return rows
+    else:
+        unique_list = []
+        for i in rows:
+            unique_list.append(i[0])
+        return unique_list
+
 def inve_products(product, cur):
     cur.execute(f"SELECT Investment_Name FROM investment_details WHERE Investment_Type = '{product}'")
     rows = cur.fetchall()
@@ -654,13 +666,18 @@ def payout_time(cur):
             full_list.append(i[0])
     return full_list
 
+def payout_next(product, cur):
+    cur.execute(f"SELECT Next_Payout from investment_description WHERE Investment_Type = '{product}'")
+    rows = cur.fetchall()
+    return rows[0][0]
+
 def next_payout(product, cur):
     cur.execute(f"SELECT Payout_Time from investment_description WHERE Investment_Type = '{product}'")
     rows = cur.fetchall()
     return rows[0][0]
 
 def manager_username(id_number, cur):
-    cur.execute(f"SELECT Ambassador_Code from Managers WHERE ID_Number = '{id_number}'")
+    cur.execute(f"SELECT Ambassador_Code from managers WHERE ID_Number = '{id_number}'")
     rows = cur.fetchall()
     return rows[0][0]
 
@@ -681,7 +698,7 @@ def all_amba(cur):
     return unique
 
 def all_id(cur):
-    cur.execute(f"SELECT ID_Number from Managers")
+    cur.execute(f"SELECT ID_Number from managers")
     rows = cur.fetchall()
     unique = []
     for i in rows:
@@ -689,7 +706,7 @@ def all_id(cur):
     return unique
 
 def all_manapass(cur):
-    cur.execute(f"SELECT Password from Managers")
+    cur.execute(f"SELECT Password from managers")
     rows = cur.fetchall()
     unique = []
     for i in rows:
@@ -732,3 +749,47 @@ def depo_serial(cur):
     rows = cur.fetchall()
     rows = int(rows[-1][0]) + 1
     return rows
+
+def depo_trans(cur):
+    cur.execute(f"SELECT Transaction_Hash from deposits")
+    rows = cur.fetchall()
+    unique_list = []
+    for a in rows:
+        if a[0] in unique_list:
+            pass
+        else:
+            unique_list.append(a[0])
+    return unique_list
+
+def depo_text(cur):
+    cur.execute(f"SELECT Details from plain_text WHERE Name = 'deposit'")
+    rows = cur.fetchall()
+    return rows[0][0]
+
+def secret_text(cur):
+    cur.execute(f"SELECT Details from plain_text WHERE Name = 'mass'")
+    rows = cur.fetchall()
+    return rows[0][0]
+
+def tele_id(cur):
+    cur.execute(f"SELECT Telegram_ID from user_info")
+    rows = cur.fetchall()
+    unique_list = []
+    for a in rows:
+        if a[0] in unique_list:
+            pass
+        elif str(a[0]).isnumeric() == False:
+            pass
+        else:
+            unique_list.append(a[0])
+    return unique_list
+
+def mainte_on(cur):
+    cur.execute(f"SELECT Details from plain_text WHERE Name = 'maintenance on'")
+    rows = cur.fetchall()
+    return rows[0][0]
+
+def mainte_off(cur):
+    cur.execute(f"SELECT Details from plain_text WHERE Name = 'maintenance off'")
+    rows = cur.fetchall()
+    return rows[0][0]
