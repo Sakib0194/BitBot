@@ -74,7 +74,7 @@ def milestone_bonus(Username, cur):
 #milestone_bonus('Vito53')
 
 def ambassador_transactions(Username, Type, Amount, Description, serial, cur):
-    sql = f'''INSERT INTO Ambassador_Transactions(Username, Type, Amount, Description, Serial)
+    sql = f'''INSERT INTO Ambassador_Transaction(Username, Type, Amount, Description, Serial)
         VALUES('{Username}', '{Type}', {Amount}, '{Description}', {serial})'''
     cur.execute(sql)
 
