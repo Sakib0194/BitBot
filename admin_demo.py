@@ -105,8 +105,8 @@ def investment_num(investment):
     e = "{:,}".format(float(d))
     return e
 
-token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
-#token = '1371918305:AAG2p4z5aYJ1VNAWq9CGcnXKDZH-64Yq6sM'
+#token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
+token = '1371918305:AAG2p4z5aYJ1VNAWq9CGcnXKDZH-64Yq6sM'
 offset = 0
 
 conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
@@ -964,7 +964,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 update_data.withdraws(serial_num, btc_hash, cur)
                 bot.send_message_four(sender_id, 'Successfully Updated', [[{'text':'Back', 'callback_data':'Tools'}]])
                 bot.get_updates(offset = update_id+1)
-
+        bot.get_updates(offset = update_id+1)
     except Exception as e:
         #print(current_updates)
         print(e)
