@@ -18,7 +18,7 @@ class BoilerPlate:
         fieldss = {'chat_id': chat_id, 'text': text, 'parse_mode': 'MarkdownV2', 'disable_web_page_preview':disable_web_page_preview}
         function = 'sendMessage'
         send = requests.post(self.api_url + function, fieldss)
-        print(send.json())
+        #print(send.json())
         return send
     def send_message_two(self, chat_id, text, reply_markup, one_time_keyboard=False, resize_keyboard=True, disable_web_page_preview=True):         #FOR SENDING MESSAGE WITH KEYBOARD INCLUDED
         reply_markup = json.dumps({'keyboard': reply_markup, 'one_time_keyboard': one_time_keyboard, 'resize_keyboard': resize_keyboard, 'disable_web_page_preview':disable_web_page_preview})
@@ -707,7 +707,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                             update_data.balance_amba(refer_username, bonus_to_give+refer_amba, cur)
                             update_data.bonus_given(saved_username[sender_id], cur)
                             serial = grab_data_two.amba_serial(cur)
-                            print('here')
                             data_input.ambassador_transactions(refer_username, 'Referral', bonus_to_give, f'Referral Bonus from {saved_username[sender_id]}', serial, cur)
                         update_success.append(sender_id)
                     enroll = grab_data_two.holding_enrolled(saved_username[sender_id], cur)
