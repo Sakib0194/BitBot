@@ -663,12 +663,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
         else:
             text = current_updates['message']['text']
             print(text)
-            if sender_id not in logged_in:
-                if sender_id not in asking_id and sender_id not in asking_pass:
-                    bot.send_message(sender_id, 'Please provide your *ID*')
-                    if sender_id not in asking_id:
-                        asking_id.append(sender_id)
-                    bot.get_updates(offset = update_id+1)
             if text == '/start' and sender_id in logged_in:
                 bot.send_message_four(sender_id, '*BitBot Company Panel*', [
                                                                         [{'text':'General Ledger', 'callback_data':'General Ledger'}], 
