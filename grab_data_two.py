@@ -729,26 +729,34 @@ def manage(cur):
 def amba_serial(cur):
     cur.execute(f"SELECT Serial from ambassador_transaction")
     rows = cur.fetchall()
-    rows = int(rows[-1][0]) + 1
-    return rows
+    max_num = []
+    for i in rows:
+        max_num.append(i[0])
+    return max(max_num)
 
 def payout_serial(cur):
     cur.execute(f"SELECT Serial from Payout_Transaction")
     rows = cur.fetchall()
-    rows = int(rows[-1][0]) + 1
-    return rows
+    max_num = []
+    for i in rows:
+        max_num.append(i[0])
+    return max(max_num)
 
 def invest_serial(cur):
     cur.execute(f"SELECT Serial from investment_transactions")
     rows = cur.fetchall()
-    rows = int(rows[-1][0]) + 1
-    return rows
+    max_num = []
+    for i in rows:
+        max_num.append(i[0])
+    return max(max_num)
 
 def depo_serial(cur):
     cur.execute(f"SELECT Serial from deposits")
     rows = cur.fetchall()
-    rows = int(rows[-1][0]) + 1
-    return rows
+    max_num = []
+    for i in rows:
+        max_num.append(i[0])
+    return max(max_num)
 
 def depo_trans(cur):
     cur.execute(f"SELECT Transaction_Hash from deposits")
