@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import mysql.connector
 def balance_info(username, balance, cur):
     sql = f"UPDATE balance_info SET Investment_Balance = '{balance}' WHERE Username = '{username}'"
     cur.execute(sql)
@@ -72,6 +71,14 @@ def tier(username, tier, cur):
 
 def payout_pending(product, cur):
     sql = f"UPDATE investment_description SET Payout_Pending = 'False' WHERE Investment_Type = '{product}'"
+    cur.execute(sql)
+
+def payout_true(product, cur):
+    sql = f"UPDATE investment_description SET Payout_Pending = 'True' WHERE Investment_Type = '{product}'"
+    cur.execute(sql)
+
+def pay_time(product, time, cur):
+    sql = f"UPDATE investment_description SET Next_Payout = '{time}' WHERE Investment_Type = '{product}'"
     cur.execute(sql)
 
 def tree_percentage(username, rate, cur):

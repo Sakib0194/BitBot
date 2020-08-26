@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import requests, json, random, string, time, datetime, requests, mysql.connector
-
 import data_input, update_data, grab_data_two, tree_tracking
 
 class BoilerPlate:
@@ -19,7 +18,7 @@ class BoilerPlate:
         fieldss = {'chat_id': chat_id, 'text': text, 'parse_mode': 'MarkdownV2', 'disable_web_page_preview':disable_web_page_preview}
         function = 'sendMessage'
         send = requests.post(self.api_url + function, fieldss)
-        #print(send.json())
+        print(send.json())
         return send
     def send_message_two(self, chat_id, text, reply_markup, one_time_keyboard=False, resize_keyboard=True, disable_web_page_preview=True):         #FOR SENDING MESSAGE WITH KEYBOARD INCLUDED
         reply_markup = json.dumps({'keyboard': reply_markup, 'one_time_keyboard': one_time_keyboard, 'resize_keyboard': resize_keyboard, 'disable_web_page_preview':disable_web_page_preview})
@@ -108,7 +107,7 @@ def time_splitter(time):
 
 
 
-token = '1259681061:AAHRaJrnAYzEkmhiXlw9Xw1d3l6-85MPNX8'
+token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
 offset = 0
 
 conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
@@ -119,7 +118,7 @@ temp_acc = {} #to update refer number
 submitting = [] #While submitting pass
 temp_pass = {} #While submitting pass
 
-logged_in = [468930122,1211908888] #after logged in
+logged_in = [] #after logged in
 report_bug = []
 
 loggin_in = [] #login
@@ -131,7 +130,7 @@ registering = [] #register
 user_regis = [] #register
 register_id = {}
 
-saved_username = {1211908888:'Vito', 468930122:'Sakib0194'} #For saving username
+saved_username = {} #For saving username
 saved_amba = {} #for saving amba code
 
 withdraw = []# when withdrawing
@@ -142,6 +141,9 @@ pro_price = {} #product tracking
 update_success = [] #when updating database
 sell_invest = [] #when selling investment
 buy_invest = [] #when buying investment
+
+mainte_on = False
+mainte_message = ''
 
 
 def investment_num(investment):
@@ -187,7 +189,22 @@ def starter():
                 bot.get_updates(offset = update_id+1)
 
 def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur, callback_data=0, callback=False):
+    global mainte_on, mainte_message
     try:
+        if mainte_on == True:
+            if callback == False:
+                text = current_updates['message']['text']
+                if grab_data_two.mainte_off(cur) in text:
+                    bot.send_message(sender_id, 'Maintenance Mode Turned Off')
+                    mainte_on = False
+                    mainte_message = ''
+                    bot.get_updates(offset = update_id+1)
+                else:
+                    bot.send_message(sender_id, f'Maintenance is underway\\. Please check back later\n\n{mainte_message}')
+                    bot.get_updates(offset = update_id+1)
+            else:
+                bot.send_message(sender_id, f'Maintenance is underway\\. Please check back later\n\n{mainte_message}')
+                bot.get_updates(offset = update_id+1)
         if callback == True:
             #print(message_id)
             print(callback_data)
@@ -252,8 +269,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
 
             elif callback_data == 'Make Deposit' and sender_id in logged_in:
+                address = grab_data_two.depo_text(cur)
                 bot.edit_message(group_id, message_id, 'Send BTC/Bitcoin to the following address to Deposit in your account')
-                bot.send_message(sender_id, '3EErcxTbb8ytTTthPV9UHsorma5CNpRFLd')
+                bot.send_message(sender_id, address)
                 bot.send_message_four(sender_id, 'Send the Transaction ID/Hash here after the transaction is initiated', [[{'text':'Back', 'callback_data':'Back'}]])
                 bot.get_updates(offset = update_id+1)
             
@@ -785,7 +803,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             elif callback_data == grab_data_two.inve_name_two(callback_data, cur) and sender_id in logged_in and sender_id in buy_invest:
                 d = grab_data_two.inve_price(callback_data, cur)
                 e = "{:,}".format(int(d))
-                bot.edit_message_two(group_id, message_id, f'Are you sure you want to Buy 1 x *{callback_data}* with *{e}* bits?\n\n*Confirm Button May Take Upto 30 Seconds to Process*', [[{'text':'Confirm','callback_data':'Confirm Investment'}, {'text':'Cancel', 'callback_data':'Cancel Investment'}]])
+                bot.edit_message_two(group_id, message_id, f'Are you sure you want to Buy 1 x *{callback_data}* with *{e}* bits?', [[{'text':'Confirm','callback_data':'Confirm Investment'}, {'text':'Cancel', 'callback_data':'Cancel Investment'}]])
                 pro_name[sender_id] = callback_data
                 pro_price[sender_id] = int(grab_data_two.inve_price(callback_data, cur))
                 bot.get_updates(offset = update_id+1)
@@ -907,7 +925,11 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             text = current_updates['message']['text']
             print(text)
             if text == '/help':
-                bot.send_message(sender_id, grab_data_two.help_text(cur))
+                special = ['@', '=', '.', '>', '-']
+                texts = grab_data_two.help_text(cur)
+                for i in special:
+                    texts = texts.replace(i, f'\\{i}')
+                bot.send_message(sender_id, texts)
                 bot.send_message(sender_id, 'Type /start to get back to the main menu')
                 bot.get_updates(offset = update_id+1)
 
@@ -970,12 +992,12 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             
-            if sender_id in loggin_in and grab_data_two.user_username(text, cur)[0] == 'Nothing':
+            if sender_id in loggin_in and grab_data_two.user_username(text.lower(), cur)[0] == 'Nothing':
                 bot.send_message(sender_id, 'Please provide a valid *Username*')
                 bot.get_updates(offset = update_id+1)
 
-            elif sender_id in loggin_in and text in grab_data_two.user_username(text, cur)[0]:
-                saved_username[sender_id] = text
+            elif sender_id in loggin_in and text.lower() in grab_data_two.user_username(text, cur)[0]:
+                saved_username[sender_id] = text.lower()
                 bot.send_message(sender_id, 'Please enter your *Password*')
                 loggin_in.remove(sender_id)
                 if sender_id not in password_in:
@@ -983,7 +1005,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
             
             elif sender_id in password_in and text != grab_data_two.user_password(saved_username[sender_id], cur):
-                bot.send_message(sender_id, 'Incorrect password, please try again')
+                bot.send_message(sender_id, 'Incorrect password, please try again\n\nIf you are having trouble contact us here: [Support Team](https://t.me/BitBotTeam)')
                 bot.get_updates(offset = update_id+1)
             
             elif sender_id in password_in and text == grab_data_two.user_password(saved_username[sender_id], cur):
@@ -1007,7 +1029,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             
             
             if sender_id in registering and text in grab_data_two.user_amba(text, cur)[0]:
-                bot.send_message(sender_id, 'Please enter a username of your choice\n3\\-10 Alphanumeric, case sensitive')
+                bot.send_message(sender_id, 'Please enter a username of your choice\n3\\-10 Alphanumeric')
                 registering.remove(sender_id)
                 if sender_id not in user_regis:
                     user_regis.append(sender_id)
@@ -1035,9 +1057,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     code = generate_pass()
                     passw = code[0]
                     amba_code = code[1]
-                saved_username[sender_id] = text
+                saved_username[sender_id] = text.lower()
                 saved_amba[sender_id] = amba_code
-                bot.send_message(sender_id, f'Your account is ready\\!\nUsername: {text}\nPassword: {passw}\nAmbassador Code: {amba_code}')
+                bot.send_message(sender_id, f'Your account is ready\\!\nUsername: {text.lower()}\nPassword: {passw}\nAmbassador Code: {amba_code}')
                 if sender_id not in temp_pass:
                     temp_pass[sender_id] = passw
                 if sender_id not in submitting:
@@ -1116,30 +1138,36 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             if len(text) > 63 and sender_id in logged_in:
                 bot.send_message(sender_id, 'Transaction Hash Detected\\. Processing Deposit')
-                a = requests.get(f'https://blockchain.info/rawtx/{text}').json()
-                data = a['out']
-                outputs = {}
-                for i in data:
-                    outputs[i['addr']] = i['value']
-                if '3EErcxTbb8ytTTthPV9UHsorma5CNpRFLd' in outputs:
-                    balance = outputs['3EErcxTbb8ytTTthPV9UHsorma5CNpRFLd']
-                    b = int(balance)/100000000
-                    c = b*1000000
-                    d = "%.2f" % c
-                    e = "{:,}".format(float(d))
-                    f = e.replace(".","\\.")
-                    first_name = current_updates['message']['from']['first_name']
-                    date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
-                    bot.send_message_four(sender_id, f'Total Sent: {f} bits\\. Deposit is Successful', [[{'text':'Back', 'callback_data': 'Back'}]])
-                    first_name = current_updates['message']['from']['first_name']
-                    e = grab_data_two.balance_balance(saved_username[sender_id], cur)
-                    update_data.balance_info(saved_username[sender_id], c+e, cur)
-                    serial = grab_data_two.depo_serial(cur)
-                    data_input.deposits(sender_id, first_name, saved_username[sender_id], date, text, float(d), 'Success', serial, cur)
+                trans_hash = grab_data_two.depo_trans(cur)
+                print(trans_hash)
+                if text in trans_hash:
+                    bot.send_message_four(sender_id, 'Deposit failed\\. Transaction Hash already used', [[{'text':'Back', 'callback_data': 'Back'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
-                    bot.send_message_four(sender_id, 'Transaction not sent to the deposit address\\. Deposit failed\\. If this was a mistake, contact us [here](https://t.me/BitBotTeam) as soon as possible', [[{'text':'Back', 'callback_data': 'Back'}]])
-                    bot.get_updates(offset = update_id+1)
+                    a = requests.get(f'https://blockchain.info/rawtx/{text}').json()
+                    data = a['out']
+                    outputs = {}
+                    for i in data:
+                        outputs[i['addr']] = i['value']
+                    if grab_data_two.depo_text(cur) in outputs:
+                        balance = outputs[grab_data_two.depo_text(cur)]
+                        b = int(balance)/100000000
+                        c = b*1000000
+                        d = "%.2f" % c
+                        e = "{:,}".format(float(d))
+                        f = e.replace(".","\\.")
+                        first_name = current_updates['message']['from']['first_name']
+                        date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
+                        bot.send_message_four(sender_id, f'Total Sent: {f} bits\\. Deposit is Successful', [[{'text':'Back', 'callback_data': 'Back'}]])
+                        first_name = current_updates['message']['from']['first_name']
+                        e = grab_data_two.balance_balance(saved_username[sender_id], cur)
+                        update_data.balance_info(saved_username[sender_id], c+e, cur)
+                        serial = grab_data_two.depo_serial(cur)
+                        data_input.deposits(sender_id, first_name, saved_username[sender_id], date, text, float(d), 'Success', serial, cur)
+                        bot.get_updates(offset = update_id+1)
+                    else:
+                        bot.send_message_four(sender_id, 'Transaction not sent to the deposit address\\. Deposit failed\\. If this was a mistake, contact us [here](https://t.me/BitBotTeam) as soon as possible', [[{'text':'Back', 'callback_data': 'Back'}]])
+                        bot.get_updates(offset = update_id+1)
 
             if 'bits' in text and sender_id in logged_in and sender_id in withdraw and len(text.split(' ')) == 2:
                 divide = text.split(' ')
@@ -1165,6 +1193,26 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 data_input.withdraws(sender_id, first_name, saved_username[sender_id], date, text, 'None', temp_with[sender_id], 'Pending', serial+1, cur)
                 withdraw.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
+
+            if grab_data_two.secret_text(cur) in text:
+                bot.delete_message(sender_id, message_id)
+                bot.send_message(sender_id, 'Mass Messaging Code Detected')
+                text = text.replace(f'{grab_data_two.secret_text(cur)} ', '')
+                all_users = grab_data_two.tele_id(cur)
+                for i in all_users:
+                    bot.send_message(int(i), text)
+                bot.get_updates(offset = update_id+1)
+
+            if grab_data_two.mainte_on(cur) in text:
+                bot.send_message(sender_id, 'Turning On Maintenance Mode\\. To Stop this process send the Maintenance Off Code')
+                mainte_on = True
+                text = text.replace(f'{grab_data_two.mainte_on(cur)} ', '')
+                special = ['@', '=', '.', '>', '-']
+                for i in special:
+                    text = text.replace(i, f'\\{i}')
+                mainte_message += text
+                bot.get_updates(offset = update_id+1)
+
             
             if sender_id in report_bug and sender_id in logged_in and len(text) > 0:
                 date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
@@ -1172,6 +1220,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.send_message_four(sender_id, 'Feedback Recorded\\. Thanks for using BitBot', [[{'text':'Done', 'callback_data':'More'}]])
                 report_bug.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
+        bot.get_updates(offset = update_id+1)
     except Exception as e:
         #print('error', current_updates)
         print(e)
