@@ -107,7 +107,8 @@ def time_splitter(time):
 
 
 
-token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
+#token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
+token = '1259681061:AAHRaJrnAYzEkmhiXlw9Xw1d3l6-85MPNX8'
 offset = 0
 
 conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
