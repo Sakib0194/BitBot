@@ -348,12 +348,19 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.get_updates(offset = update_id+1)
 
             if callback_data == 'Ambassador Account' and sender_id in logged_in:
-                referred = grab_data_two.amba_refered(saved_username[sender_id], cur)
+                details = grab_data_two.user_user(saved_username[sender_id], cur)
+                dire = grab_data_two.ambaused_username(details[4], cur)
+                direct = []
+                for i in dire:
+                    if i == 'Nothing':
+                        pass
+                    else:
+                        direct.append(i[0])
                 tree_tracking.qualified_mile(saved_username[sender_id], cur)
                 tree_tracking.qualified_resi(saved_username[sender_id], cur)
                 tree = grab_data_two.amba_tree(saved_username[sender_id], cur)
                 amba_balance = grab_data_two.balance_amba(saved_username[sender_id], cur)
-                bot.edit_message_two(group_id, message_id, f'👤 *My Ambassador \\- {saved_username[sender_id]}\n\nDirect Referrals: {referred}*', [[{'text':f'My Ambassador Volume: {investment_num(tree)} bits', 'callback_data':'None'}],
+                bot.edit_message_two(group_id, message_id, f'👤 *My Ambassador \\- {saved_username[sender_id]}\n\nDirect Referrals: {len(direct)}*', [[{'text':f'My Ambassador Volume: {investment_num(tree)} bits', 'callback_data':'None'}],
                                                                                                                                                 [{'text':f'My Ambassador Earnings: {investment_num(amba_balance)} bits', 'callback_data':'Ambassador Earning'}],
                                                                                                                                                 [{'text':'Ambassador Compensation Plan', 'callback_data':'Ambassador Compensation'}],
                                                                                                                                                 [{'text':'↩️ Back', 'callback_data':'Back'}]])
