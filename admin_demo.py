@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import requests, json, random, string, time, datetime, mysql.connector
-
 import update_data, data_input, grab_data_two, delete_row, payout_demo, tree_tracking
 class BoilerPlate:
     def __init__(self, token):
@@ -106,8 +105,8 @@ def investment_num(investment):
     e = "{:,}".format(float(d))
     return e
 
-
-token = '1371918305:AAG2p4z5aYJ1VNAWq9CGcnXKDZH-64Yq6sM'
+token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
+#token = '1371918305:AAG2p4z5aYJ1VNAWq9CGcnXKDZH-64Yq6sM'
 offset = 0
 
 conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
@@ -125,7 +124,7 @@ create_manager = []
 
 asking_id = []
 asking_pass = []
-logged_in = [1211908888, 468930122]
+logged_in = []
 
 id_number = {}
 
@@ -295,7 +294,10 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     serial = grab_data_two.payout_serial(cur)
                     data_input.payout_transaction(i, product, float(data[i]), serial, cur)
                 del payout_pen[sender_id]
+                next_pay = grab_data_two.next_payout(product, cur)
+                current_time = time.time()
                 update_data.payout_pending(product, cur)
+                update_data.pay_time(product, int(next_pay)+current_time, cur)
                 bot.edit_message_two(group_id, message_id, 'Payout successfully sent', [[{'text':'Back', 'callback_data': 'General Ledger'}]])
                 bot.get_updates(offset = update_id+1)
                 
@@ -308,7 +310,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     tree_tracking.resi_per(i[0], cur)
                     resi = grab_data_two.quali_resi(i[0], cur)
                     for h in resi:
-                        if h[0] == 'Vito':
+                        if h[0] == 'vito':
                             pass
                         elif h[1] == 0 or h[1] == 1:
                             pass
@@ -762,7 +764,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.send_message_four(sender_id, 'Wrong Format\\. Try again', [[{'text':'Back', 'callback_data':'Back'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
-                    a=grab_data_two.user_user(b[0], cur)
+                    a=grab_data_two.user_user(b[0].lower(), cur)
                     if a == 'Nothing':
                         bot.send_message_four(sender_id, 'Username not found', [[{'text':'Back', 'callback_data':'Back'}]])
                         bot.get_updates(offset = update_id+1)
@@ -775,33 +777,15 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                         full_text = f'Telgram ID: {a[0]}\nFirst Name: {name}\nUsername: {a[2]}\nPassword: {a[3]}\nAmbassador ID: {a[4]}\nAmbassador ID Used: {a[5]}\nTime Joined: {time_two}\nTelgram Username: {a[7]}'
                         bot.send_message_four(sender_id, full_text, [[{'text':'Back', 'callback_data':'Back'}]])
                         bot.get_updates(offset = update_id+1)
-            
-            if 'manager' in text and len(text.split(' ')) == 2 and sender_id in logged_in:
-                b = text.split(' ')
-                bot.send_message(sender_id, 'Fetching Details')
-                if b[1] != 'manager':
-                    bot.send_message_four(sender_id, 'Wrong Format\\. Try again', [[{'text':'Back', 'callback_data':'Back'}]])
-                    bot.get_updates(offset = update_id+1)
-                else:
-                    a=grab_data_two.mana_mana(b[0], cur)
-                    if a == 'Nothing':
-                        bot.send_message_four(sender_id, 'ID not found', [[{'text':'Back', 'callback_data':'Back'}]])
-                        bot.get_updates(offset = update_id+1)
-                    else:
-                        tim = a[2]
-                        time_two = tim.replace("-", "\\-")
-                        full_text = f'Telgram ID: {a[0]}\nFirst Name: {a[1]}\nJoining Date: {time_two}\nID Number: {a[3]}\nPassword: {a[4]}\nSpecial Access {a[5]}\nUsername: {a[6]}\nAmbassador Code: {a[7]}'
-                        bot.send_message_four(sender_id, full_text, [[{'text':'Back', 'callback_data':'Back'}]])
-                        bot.get_updates(offset = update_id+1)
 
             if sender_id in debit_acc and sender_id in logged_in and len(text) > 2:
                 bot.send_message(sender_id, 'Checking Username validity')
-                validity = grab_data_two.user_username(text, cur)
+                validity = grab_data_two.user_username(text.lower(), cur)
                 if validity[0] != 'Nothing':
                     balance = int(grab_data_two.inve_bala(text, cur))
                     bot.send_message_four(sender_id, f'User Current Balance: {balance} bits\\. Enter the amount of bits to debit', [[{'text':'Back', 'callback_data':'Back'}]])
                     debit_acc.remove(sender_id)
-                    debit_acc_two[sender_id] = text
+                    debit_acc_two[sender_id] = text.lower()
                     bot.get_updates(offset = update_id+1)
                 elif validity[0] == 'Nothing':
                     bot.send_message_four(sender_id, 'Username Not Found', [[{'text':'Back', 'callback_data':'Back'}]])
@@ -820,12 +804,12 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
             if sender_id in credit_acc and sender_id in logged_in and len(text) > 2:
                 bot.send_message(sender_id, 'Checking Username validity')
-                validity = grab_data_two.user_username(text, cur)
+                validity = grab_data_two.user_username(text.lower(), cur)
                 if validity[0] != 'Nothing':
                     balance = int(grab_data_two.inve_bala(text, cur))
                     bot.send_message_four(sender_id, f'User Current Balance: {balance} bits\\. Enter the amount of bits to credit', [[{'text':'Back', 'callback_data':'Back'}]])
                     credit_acc.remove(sender_id)
-                    credit_acc_two[sender_id] = text
+                    credit_acc_two[sender_id] = text.lower()
                     bot.get_updates(offset = update_id+1)
                 elif validity[0] == 'Nothing':
                     bot.send_message_four(sender_id, 'Username Not Found', [[{'text':'Back', 'callback_data':'Back'}]])
@@ -922,37 +906,41 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             
             if 'reset' in text and len(text.split(' ')) == 2 and sender_id in logged_in:
                 b = text.split(' ')
-                a = grab_data_two.user_user(b[0], cur)
+                a = grab_data_two.user_user(b[0].lower(), cur)
                 if a == 'Nothing':
                     bot.send_message_four(sender_id, 'Username not found', [[{'text':'Back', 'callback_data':'Back'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
                     new_pass = generate_pass()[0]
-                    update_data.password(b[0], new_pass, cur)
+                    update_data.password(b[0].lower(), new_pass, cur)
                     bot.send_message(sender_id, 'Successfully Updated Password\\. New Pass:')
                     bot.send_message_four(sender_id, new_pass, [[{'text':'Back', 'callback_data':'Tools'}]])
                     bot.get_updates(offset = update_id+1)
 
             if sender_id in create_admin and sender_id in logged_in:
                 all_user = grab_data_two.user_all(cur)
-                if text in all_user:
+                users = []
+                for i in all_user:
+                    users.append(i[0])
+                print(users)
+                if text.lower() not in users:
                     bot.send_message_four(sender_id, 'Username not found', [[{'text':'Cancel','callback_data':'Tools'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
-                    admin_user[sender_id] = text
-                    bot.send_message_four(sender_id, f'Are you sure you want to promote {text} to a Manager?', [[{'text':'Confirm', 'callback_data':'Confirm Admin'}],
+                    admin_user[sender_id] = text.lower()
+                    bot.send_message_four(sender_id, f'Are you sure you want to promote {text.lower()} to a Manager?', [[{'text':'Confirm', 'callback_data':'Confirm Admin'}],
                                                                                                                 [{'text':'Cancel','callback_data':'Tools'}]])
                     bot.get_updates(offset = update_id+1)
 
             if 'delete' in text and len(text.split(' ')) == 2 and sender_id in logged_in:
                 b = text.split(' ')
-                a = grab_data_two.user_user(b[0], cur)
+                a = grab_data_two.user_user(b[0].lower(), cur)
                 if a == 'Nothing':
                     bot.send_message_four(sender_id, 'Username not found', [[{'text':'Back', 'callback_data':'Back'}]])
                     bot.get_updates(offset = update_id+1)
                 else:
-                    bot.send_message_four(sender_id, f'Are you sure you want to delete {b[0]}?', [[{'text':'Confirm', 'callback_data':'Confirm Delete'},{'text':'Back', 'callback_data':'Tools'}]])
-                    delete_user[sender_id] = b[0]
+                    bot.send_message_four(sender_id, f'Are you sure you want to delete {b[0].lower()}?', [[{'text':'Confirm', 'callback_data':'Confirm Delete'},{'text':'Back', 'callback_data':'Tools'}]])
+                    delete_user[sender_id] = b[0].lower()
                     bot.get_updates(offset = update_id+1)
             
             if sender_id in add_payout and sender_id in payout_pro and sender_id in logged_in:
