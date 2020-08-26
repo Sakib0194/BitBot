@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import requests, json, random, string, time, datetime, mysql.connector
-import grab_data, update_data, data_input, grab_data_two, delete_row, payout_demo, tree_tracking
+import update_data, data_input, grab_data_two, delete_row, payout_demo, tree_tracking
 class BoilerPlate:
     def __init__(self, token):
         self.token = token
@@ -109,8 +109,8 @@ def investment_num(investment):
 conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
 cur = conn.cursor()
 
-token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
-#token = '1233921119:AAEodGL5mX6NAd84dDjQrAhOt03JNcRDIio'
+#token = '1097474969:AAFjro39pNaKqdrWy6bZIppX1ZzbM_B6RyY'
+token = '1233921119:AAEodGL5mX6NAd84dDjQrAhOt03JNcRDIio'
 offset = 0
 
 asking_id = []
@@ -366,6 +366,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     date = data[6].replace('-', '\\-')
                     bot.send_message_four(sender_id, f'Username: {data[2]}\nDate of Registration: {date}\nAmbassador Code: {data[4]}\nDown Volume: {int(down)}\nHoldings: {int(promo)+int(stand)}', [[{'text':'Back','callback_data':'Back'}]])
                     bot.get_updates(offset = update_id+1)
+        bot.get_updates(offset = update_id+1)
     except Exception as e:
         #print(current_updates)
         print(e)
