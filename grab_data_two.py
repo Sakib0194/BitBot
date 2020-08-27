@@ -727,7 +727,7 @@ def manage(cur):
     return unique
 
 def amba_serial(cur):
-    cur.execute(f"SELECT Serial from ambassador_transaction")
+    cur.execute(f"SELECT Serial from ambassador_transactions")
     rows = cur.fetchall()
     max_num = []
     for i in rows:
@@ -735,7 +735,7 @@ def amba_serial(cur):
     return max(max_num)+1
 
 def payout_serial(cur):
-    cur.execute(f"SELECT Serial from Payout_Transaction")
+    cur.execute(f"SELECT Serial from payout_transactions")
     rows = cur.fetchall()
     max_num = []
     for i in rows:
