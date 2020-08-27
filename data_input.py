@@ -74,7 +74,7 @@ def milestone_bonus(Username, cur):
 #milestone_bonus('Vito53')
 
 def ambassador_transactions(Username, Type, Amount, Description, serial, cur):
-    sql = f'''INSERT INTO Ambassador_Transaction(Username, Type, Amount, Description, Serial)
+    sql = f'''INSERT INTO ambassador_transactions(Username, Type, Amount, Description, Serial)
         VALUES('{Username}', '{Type}', {Amount}, '{Description}', {serial})'''
     cur.execute(sql)
 
@@ -92,5 +92,3 @@ def plain_text(Name, Details, cur):
     sql = f'''INSERT INTO plain_text(Name, Details)
         VALUES('{Name}', '{Details}')'''
     cur.execute(sql)
-
-#plain_text('help', '''This is the official Telegram Bot of BitBot, a Digital Asset Management Service\\.\nThis section will help you get familiar with the Bot\\.\n\nStart the bot by typing /start\\. Then, you have the option to Login or Register\\. In order to proceed with registration, you must have an access code or ambassador code\\. If you do not have a code, contact us here \\@BitBotTeam to get one\\.\n\nWhen you choose to Register, you will have to provide your code, press Register \\=\\> Accept our Terms of Service \\=\\> Provide your code\\. Follow the steps to complete your registration\\. Choose a unique username and the bot will provide you a password and an ambassador code\\. Follow steps and save your personal credentials, once completed you will be redirected to the “Main Menu”\\.\n\nThe Main Menu is composed of 5 buttons which will bring you to 5 different sections\nBalance is counted as bits\n1 million bits = 1 BTC or\n1,000,000 bits = 1 BTC\\.\n\n*My BitBot Balance*\nMy BitBot Balance \\- Your Total Balance\nAvailable Balance \\- Balance Available for Purchase or Withdrawal\nMake a Deposit \\- To Deposit Funds\nWithdrawal \\- To Request Withdrawal\nTransaction History \\- Your Deposit and Withdrawal History\n\n*My Portfolio*\nMy Portfolio \\- Your Total Investment Value\nMy Investments \\- Your Current Investment Product Holdings\nMy Earnings \\- Your Earnings from Investment Products\nBuy \\- To Purchase an Investment Product\nSell \\- To Sell an Investment Product.\nSelling Investments has a fee of 1000 bits\nInvestments History \\- Your Investment Buy or Sell History\n\n*My Ambassador Profile*\nMy Ambassador Volume \\- Total\nInvestment Holdings of your referrals\nMy Ambassador Earnings \\- Details of Referral Bonus, Earnings for Reaching Milestone or Residual Income\nAmbassador Compensation Plan \\- Detailed Plans and Rewards for Referrals\n\n*More*\nToS \\- Terms of Service\nFAQ \\- Frequently Asked Questions, Find answers faster\nAbout Us \\- Details about our company\nReport Bug \\- To Report any Bug in the bot or Feedback\nHelp \\- How to Contact us''')
