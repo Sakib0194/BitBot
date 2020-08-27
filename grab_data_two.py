@@ -732,7 +732,7 @@ def amba_serial(cur):
     max_num = []
     for i in rows:
         max_num.append(i[0])
-    return max(max_num)
+    return max(max_num)+1
 
 def payout_serial(cur):
     cur.execute(f"SELECT Serial from Payout_Transaction")
@@ -740,7 +740,7 @@ def payout_serial(cur):
     max_num = []
     for i in rows:
         max_num.append(i[0])
-    return max(max_num)
+    return max(max_num)+1
 
 def invest_serial(cur):
     cur.execute(f"SELECT Serial from investment_transactions")
@@ -748,7 +748,7 @@ def invest_serial(cur):
     max_num = []
     for i in rows:
         max_num.append(i[0])
-    return max(max_num)
+    return max(max_num)+1
 
 def depo_serial(cur):
     cur.execute(f"SELECT Serial from deposits")
@@ -756,7 +756,7 @@ def depo_serial(cur):
     max_num = []
     for i in rows:
         max_num.append(i[0])
-    return max(max_num)
+    return max(max_num)+1
 
 def depo_trans(cur):
     cur.execute(f"SELECT Transaction_Hash from deposits")
