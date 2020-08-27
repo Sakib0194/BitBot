@@ -196,6 +196,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             if callback == False:
                 text = current_updates['message']['text']
                 if grab_data_two.mainte_off(cur) in text:
+                    bot.delete_message(sender_id, message_id)
                     bot.send_message(sender_id, 'Maintenance Mode Turned Off')
                     mainte_on = False
                     mainte_message = ''
@@ -1228,7 +1229,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.send_message_four(sender_id, 'Feedback Recorded\\. Thanks for using BitBot', [[{'text':'Done', 'callback_data':'More'}]])
                 report_bug.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
-        bot.get_updates(offset = update_id+1)
     except Exception as e:
         #print('error', current_updates)
         print(e)
