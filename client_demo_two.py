@@ -936,6 +936,8 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.delete_message(sender_id, message_id)
                 bot.send_message(sender_id, 'Mass Messaging Code Detected')
                 text = text.replace(f'{grab_data_two.secret_text(cur)} ', '')
+                for i in special:
+                    text = text.replace(i, f'\\{i}')
                 all_users = grab_data_two.tele_id(cur)
                 for i in all_users:
                     bot.send_message(int(i), text)
@@ -1166,7 +1168,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             if len(text) > 63 and sender_id in logged_in and grab_data_two.secret_text(cur) not in text and grab_data_two.mainte_on(cur) not in text:
                 bot.send_message(sender_id, 'Transaction Hash Detected\\. Processing Deposit')
                 trans_hash = grab_data_two.depo_trans(cur)
-                print(trans_hash)
                 if text in trans_hash:
                     bot.send_message_four(sender_id, 'Deposit failed\\. Transaction Hash already used', [[{'text':'Back', 'callback_data': 'Back'}]])
                     bot.get_updates(offset = update_id+1)
