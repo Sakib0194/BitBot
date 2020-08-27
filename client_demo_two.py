@@ -931,6 +931,26 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
         else:
             text = current_updates['message']['text']
             print(text)
+            if grab_data_two.secret_text(cur) in text:
+                special = ['@', '=', '.', '>', '-']
+                bot.delete_message(sender_id, message_id)
+                bot.send_message(sender_id, 'Mass Messaging Code Detected')
+                text = text.replace(f'{grab_data_two.secret_text(cur)} ', '')
+                all_users = grab_data_two.tele_id(cur)
+                for i in all_users:
+                    bot.send_message(int(i), text)
+                bot.get_updates(offset = update_id+1)
+
+            if grab_data_two.mainte_on(cur) in text:
+                bot.send_message(sender_id, 'Turning On Maintenance Mode\\. To Stop this process send the Maintenance Off Code')
+                mainte_on = True
+                text = text.replace(f'{grab_data_two.mainte_on(cur)} ', '')
+                special = ['@', '=', '.', '>', '-']
+                for i in special:
+                    text = text.replace(i, f'\\{i}')
+                mainte_message += text
+                bot.get_updates(offset = update_id+1)
+
             if text == '/help':
                 special = ['@', '=', '.', '>', '-']
                 texts = grab_data_two.help_text(cur)
@@ -1143,7 +1163,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     bot.send_message_four(sender_id, f'Username: {saved_username[sender_id]}\nPassword: {text}\nAmbassador Code: {details[4]}\nAmbassador Code Used: {details[5]}\nDate Joined: {date_joined}\nCurrent Holding: {int(promo)+int(stand)} bits\nDirect Refer: {len(direct)}\nTotal Refer: {tree}\nTotal Invest: {int(all_inve)}', [[{'text':'Back', 'callback_data': 'Back'}]])
                     bot.get_updates(offset = update_id+1)
 
-            if len(text) > 63 and sender_id in logged_in:
+            if len(text) > 63 and sender_id in logged_in and grab_data_two.secret_text(cur) not in text and grab_data_two.mainte_on(cur) not in text:
                 bot.send_message(sender_id, 'Transaction Hash Detected\\. Processing Deposit')
                 trans_hash = grab_data_two.depo_trans(cur)
                 print(trans_hash)
@@ -1201,26 +1221,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 withdraw.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
 
-            if grab_data_two.secret_text(cur) in text:
-                bot.delete_message(sender_id, message_id)
-                bot.send_message(sender_id, 'Mass Messaging Code Detected')
-                text = text.replace(f'{grab_data_two.secret_text(cur)} ', '')
-                all_users = grab_data_two.tele_id(cur)
-                for i in all_users:
-                    bot.send_message(int(i), text)
-                bot.get_updates(offset = update_id+1)
-
-            if grab_data_two.mainte_on(cur) in text:
-                bot.send_message(sender_id, 'Turning On Maintenance Mode\\. To Stop this process send the Maintenance Off Code')
-                mainte_on = True
-                text = text.replace(f'{grab_data_two.mainte_on(cur)} ', '')
-                special = ['@', '=', '.', '>', '-']
-                for i in special:
-                    text = text.replace(i, f'\\{i}')
-                mainte_message += text
-                bot.get_updates(offset = update_id+1)
-
-            
             if sender_id in report_bug and sender_id in logged_in and len(text) > 0:
                 date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
                 data_input.feedback(saved_username[sender_id], date, text, cur)
