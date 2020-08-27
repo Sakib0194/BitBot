@@ -113,8 +113,6 @@ cur = conn.cursor()
 token = '1233921119:AAEodGL5mX6NAd84dDjQrAhOt03JNcRDIio'
 offset = 0
 
-asking_id = []
-asking_pass = []
 logged_in = []
 
 loggin_in = [] #login
@@ -281,7 +279,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 logged_in.remove(sender_id)
                 del id_number[sender_id]
                 bot.send_message(sender_id, 'Please provide your *Username*')
-                asking_id.append(sender_id)
+                loggin_in.append(sender_id)
                 bot.get_updates(offset = update_id+1)
 
         else:
@@ -312,11 +310,17 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                 bot.send_message(sender_id, 'Please provide your *Username*')
                 if sender_id not in loggin_in:
                     loggin_in.append(sender_id)
+                if sender_id in password_in:
+                    password_in.remove(sender_id)
                 bot.get_updates(offset = update_id+1)
             
             elif text == '/start' and sender_id in logged_in:
                 if sender_id in summary_pass:
                     summary_pass.remove(sender_id)
+                if sender_id in loggin_in:
+                    loggin_in.remove(sender_id)
+                if sender_id in password_in:
+                    password_in.remove(sender_id)
                 bot.send_message_four(sender_id, '*BitBot Management Panel*', [[{'text':'My Manager Volume', 'callback_data':'Manager Volume'}],
                                                                                         [{'text':'My Clients', 'callback_data':'My Clients'}],
                                                                                         [{'text':'Log Out', 'callback_data':'Log Out'}]])
