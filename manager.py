@@ -366,7 +366,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     date = data[6].replace('-', '\\-')
                     bot.send_message_four(sender_id, f'Username: {data[2]}\nDate of Registration: {date}\nAmbassador Code: {data[4]}\nDown Volume: {int(down)}\nHoldings: {int(promo)+int(stand)}', [[{'text':'Back','callback_data':'Back'}]])
                     bot.get_updates(offset = update_id+1)
-        bot.get_updates(offset = update_id+1)
     except Exception as e:
         #print(current_updates)
         print(e)
