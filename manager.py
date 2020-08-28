@@ -349,6 +349,10 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
             elif sender_id in password_in and sender_id not in summary_pass and text == grab_data_two.user_password(id_number[sender_id], cur) and grab_data_two.manager_access(id_number[sender_id], cur) == 'YES':
                 bot.send_message(sender_id, 'Access Granted')
                 bot.delete_message(sender_id, message_id)
+                if sender_id in loggin_in:
+                    loggin_in.remove(sender_id)
+                if sender_id in password_in:
+                    password_in.remove(sender_id)
                 logged_in.append(sender_id)
                 bot.send_message_four(sender_id, '*BitBot Management Panel*', [[{'text':'My Manager Volume', 'callback_data':'Manager Volume'}],
                                                                                         [{'text':'My Clients', 'callback_data':'My Clients'}],
