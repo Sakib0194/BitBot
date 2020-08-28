@@ -337,8 +337,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
                     tol_bal = grab_data_two.balance_balance(saved_username[sender_id], cur)
                     total = int(promo) + int(stand) + int(tol_bal)
+                    portfo = int(promo) + int(stand)
                     bot.edit_message_two(group_id, message_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
-                                                                            [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
+                                                                            [{'text':f'📈 My Portfolio: {investment_num(portfo)} bits', 'callback_data':'Investment Account'}], 
                                                                             [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}], 
                                                                             [{'text':'My Summary', 'callback_data':'My Summary'}],
                                                                             [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
@@ -465,9 +466,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
                     total = int(promo) + int(stand)
                     bot.edit_message_two(group_id, message_id, f'👤 *My Investment Portfolio \\- {saved_username[sender_id]}*', [[{'text':f'My Portfolio: {investment_num(total)} bits', 'callback_data':'None'}], 
+                                                                                                                [{'text':'Buy', 'callback_data':'Buy Investment'}, {'text':'Sell', 'callback_data':'Sell An Investment'}],
                                                                                                                 [{'text':'My Investments', 'callback_data':'My Investment'}],
                                                                                                                 [{'text':'My Earnings', 'callback_data':'Earnings'}],
-                                                                                                                [{'text':'Buy', 'callback_data':'Buy Investment'}, {'text':'Sell', 'callback_data':'Sell An Investment'}],
                                                                                                                 [{'text':'Investments History', 'callback_data':'Investment History'}],
                                                                                                                 [{'text':'↩️ Back', 'callback_data':'Back'}]])
                     bot.get_updates(offset = update_id+1)
@@ -871,13 +872,13 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     full_code = []
                     for a in products:
                         full_code.append({'text':f'{a}', 'callback_data':f'{a}'})
-                    c = 3
+                    c = 1
                     d = 0
                     part = []
                     while full_code[-1] not in full_code[d:c]:
                         part.append(full_code[d:c])
-                        c += 3
-                        d += 3
+                        c += 1
+                        d += 1
                     if full_code[-1] in full_code[d:c]:
                         part.append(full_code[d:c])
                         part.append([{'text':'Back','callback_data':'Investment Account'}])
@@ -1015,8 +1016,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
                     tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id], cur))
                     total = int(promo) + int(stand) + int(tol_bal)
+                    portfo = int(promo) + int(stand)
                     bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
-                                                                            [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
+                                                                            [{'text':f'📈 My Portfolio: {investment_num(portfo)} bits', 'callback_data':'Investment Account'}], 
                                                                             [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}], 
                                                                             [{'text':'My Summary', 'callback_data':'My Summary'}],
                                                                             [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
@@ -1051,8 +1053,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
                     tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id], cur))
                     total = int(promo) + int(stand) + int(tol_bal)
+                    portfo = int(promo) + int(stand)
                     bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
-                                                                            [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
+                                                                            [{'text':f'📈 My Portfolio {investment_num(portfo)} bits', 'callback_data':'Investment Account'}], 
                                                                             [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}], 
                                                                             [{'text':'My Summary', 'callback_data':'My Summary'}],
                                                                             [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
@@ -1128,8 +1131,9 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     stand = grab_data_two.hold_stand(saved_username[sender_id], cur)
                     tol_bal = int(grab_data_two.balance_balance(saved_username[sender_id], cur))
                     total = int(promo) + int(stand) + int(tol_bal)
+                    portfo = int(promo) + int(stand)
                     bot.send_message_four(sender_id, f'👤 *My BitBot \\- {saved_username[sender_id]}*', [[{'text':f'💰 My BitBot Balance: {investment_num(total)} bits', 'callback_data': 'Main Balance'}], 
-                                                                            [{'text':'📈 My Portfolio', 'callback_data':'Investment Account'}], 
+                                                                            [{'text':f'📈 My Portfolio: {investment_num(portfo)} bits', 'callback_data':'Investment Account'}], 
                                                                             [{'text':'👥 My Ambassador Profile', 'callback_data':'Ambassador Account'}],
                                                                             [{'text':'My Summary', 'callback_data':'My Summary'}], 
                                                                             [{'text':'📄 More', 'callback_data':'More'},{'text':'🔐 Log Out', 'callback_data':'Log Out'}]])
