@@ -956,7 +956,7 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
                     serial_num = b[0]
                 bot.send_message(sender_id, 'hash detected, updating database')
                 update_data.withdraws(serial_num, btc_hash, cur)
-                bot.send_message_four(sender_id, 'Successfully Updated', [[{'text':'Back', 'callback_data':'Tools'}]])
+                bot.send_message_four(sender_id, 'Successfully Updated', [[{'text':'Back', 'callback_data':'General Ledger'}]])
                 bot.get_updates(offset = update_id+1)
     except Exception as e:
         #print(current_updates)
