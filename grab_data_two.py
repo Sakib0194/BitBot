@@ -462,14 +462,10 @@ def descri_pending(cur):
 def descri_false(cur):
     cur.execute("SELECT Investment_Type FROM investment_description WHERE Payout_Pending = 'False'")
     rows = cur.fetchall()
-    if rows == []:
-        rows = 'Nothing'
-        return rows
-    else:
-        unique_list = []
-        for i in rows:
-            unique_list.append(i[0])
-        return unique_list
+    unique_list = []
+    for i in rows:
+        unique_list.append(i[0])
+    return unique_list
 
 def inve_products(product, cur):
     cur.execute(f"SELECT Investment_Name FROM investment_details WHERE Investment_Type = '{product}'")
