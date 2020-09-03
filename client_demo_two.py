@@ -11,6 +11,7 @@ class BoilerPlate:
         function = 'getUpdates'
         fieldss = {'timeout' : timeout, 'offset': offset}
         send = requests.get(self.api_url + function, fieldss)
+        print(send)
         result_json = send.json()['result']
         return result_json
 
@@ -159,35 +160,40 @@ bot = BoilerPlate(token)
 def starter():
     global offset, conn, cur
     while True:
-        if conn.is_connected() == True:
+        try:
+            if conn.is_connected() == True:
+                pass
+            else:
+                conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
+                cur = conn.cursor()
+            all_updates = bot.get_updates(offset)
+            for current_updates in all_updates:
+                #print(current_updates)
+                update_id = current_updates['update_id']
+                #bot.get_updates(offset = update_id+1)
+                try:
+                    if 'callback_query' in current_updates:
+                        #print('inline keyboard detected')
+                        sender_id = current_updates['callback_query']['from']['id']
+                        group_id = current_updates['callback_query']['message']['chat']['id']
+                        message_id = current_updates['callback_query']['message']['message_id']
+                        callback_data = current_updates['callback_query']['data']
+                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0, cur, callback_data=callback_data, callback=True)
+                    else:
+                        group_id = current_updates['message']['chat']['id']
+                        sender_id = current_updates['message']['from']['id']
+                        message_id = current_updates['message']['message_id']
+                        dict_checker = []
+                        for keys in current_updates.get('message'):
+                            dict_checker.append(keys)
+                        if sender_id == group_id:
+                            bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur)
+                except:
+                    bot.get_updates(offset = update_id+1)
+        except Exception as e:
+            print(e)
+            print('got an error')
             pass
-        else:
-            conn = mysql.connector.connect(host='62.77.159.42',user='sakib3',database='bitbot',password='@&G6hdM@EZJKQu010au*jpIjs7EsB', autocommit=True)
-            cur = conn.cursor()
-        all_updates = bot.get_updates(offset)
-        for current_updates in all_updates:
-            #print(current_updates)
-            update_id = current_updates['update_id']
-            #bot.get_updates(offset = update_id+1)
-            try:
-                if 'callback_query' in current_updates:
-                    #print('inline keyboard detected')
-                    sender_id = current_updates['callback_query']['from']['id']
-                    group_id = current_updates['callback_query']['message']['chat']['id']
-                    message_id = current_updates['callback_query']['message']['message_id']
-                    callback_data = current_updates['callback_query']['data']
-                    bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, 0, cur, callback_data=callback_data, callback=True)
-                else:
-                    group_id = current_updates['message']['chat']['id']
-                    sender_id = current_updates['message']['from']['id']
-                    message_id = current_updates['message']['message_id']
-                    dict_checker = []
-                    for keys in current_updates.get('message'):
-                        dict_checker.append(keys)
-                    if sender_id == group_id:
-                        bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur)
-            except:
-                bot.get_updates(offset = update_id+1)
 
 def bot_message_handler(current_updates, update_id, message_id, sender_id, group_id, dict_checker, cur, callback_data=0, callback=False):
     global mainte_on, mainte_message
@@ -771,9 +777,6 @@ def bot_message_handler(current_updates, update_id, message_id, sender_id, group
 
                         date = time_splitter(str(datetime.datetime.fromtimestamp(time.time())))
                         serial = grab_data_two.invest_serial(cur)
-                        print('here')
-                        print(pro_name[sender_id])
-                        print(serial)
                         data_input.investment_transactions(saved_username[sender_id], date, 'Buy', pro_name[sender_id], d, serial, cur)
                         bot.edit_message_two(group_id, message_id, f'Successfully Purchased 1 x *{pro_name[sender_id]}* for *{e}* bits', [[{'text':'Back', 'callback_data':'Investment Account'}]])
                         if sender_id in pro_name:
