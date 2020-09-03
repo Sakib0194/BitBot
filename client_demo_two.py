@@ -11,7 +11,7 @@ class BoilerPlate:
         function = 'getUpdates'
         fieldss = {'timeout' : timeout, 'offset': offset}
         send = requests.get(self.api_url + function, fieldss)
-        print(send)
+        print(send.json())
         result_json = send.json()['result']
         return result_json
 
